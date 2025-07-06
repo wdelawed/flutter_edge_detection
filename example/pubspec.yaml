@@ -13,8 +13,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  permission_handler: ^11.3.1
-  path_provider: ^2.1.2
+  permission_handler: ^12.0.1
+  path_provider: ^2.1.5
   path: ^1.9.0
   flutter_edge_detection:
     # When depending on this package from a real application you should use:
