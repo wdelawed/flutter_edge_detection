@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.2] - 2024-06-19
+
+- Update dependencies to latest versions:
+  - image_picker: ^1.1.2
+  - path_provider: ^2.1.5
+  - permission_handler: ^12.0.1
+- Ensure compatibility with latest stable Dart and Flutter SDKs
+- Fix version solving issues for example app
+
 ## [1.0.0+1] - 2024-12-19
 
 ### Initial Release
