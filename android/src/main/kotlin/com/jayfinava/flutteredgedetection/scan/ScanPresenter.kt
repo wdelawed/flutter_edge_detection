@@ -1,4 +1,5 @@
 package com.jayfinava.flutteredgedetection.scan
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -245,10 +246,11 @@ class ScanPresenter constructor(
         }
     }
     fun detectEdge(pic: Mat) {
+
         Log.i("height", pic.size().height.toString())
         Log.i("width", pic.size().width.toString())
         val resizedMat = matrixResizer(pic)
-        SourceManager.corners = processPicture(resizedMat)
+        SourceManager.corners = processPicture(resizedMat, requireTemporalStability = false)
         Imgproc.cvtColor(resizedMat, resizedMat, Imgproc.COLOR_RGB2BGRA)
         SourceManager.pic = resizedMat
         val cropIntent = Intent(context, CropActivity::class.java)
@@ -273,6 +275,7 @@ class ScanPresenter constructor(
         }
     }
 
+    @SuppressLint("CheckResult")
     override fun onPictureTaken(p0: ByteArray?, p1: Camera?) {
         Log.i(TAG, "on picture taken")
         Observable.just(p0)
@@ -296,6 +299,7 @@ class ScanPresenter constructor(
             }
     }
 
+    @SuppressLint("CheckResult")
     override fun onPreviewFrame(p0: ByteArray?, p1: Camera?) {
         if (busy) {
             return
@@ -328,7 +332,7 @@ class ScanPresenter constructor(
                     }
 
                     Observable.create<Corners> {
-                        val corner = processPicture(img)
+                        val corner = processPicture(img, requireTemporalStability = true)
                         busy = false
                         if (null != corner && corner.corners.size == 4) {
                             it.onNext(corner)

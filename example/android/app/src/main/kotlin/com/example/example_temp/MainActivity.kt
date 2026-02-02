@@ -1,4 +1,4 @@
-package com.jayfinava.flutteredgedetectionexample
+package com.example.example_temp
 
 import io.flutter.embedding.android.FlutterActivity
 
