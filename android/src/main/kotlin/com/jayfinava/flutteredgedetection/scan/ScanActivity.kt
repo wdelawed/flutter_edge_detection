@@ -49,8 +49,8 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         val initialBundle = intent.getBundleExtra(EdgeDetectionHandler.INITIAL_BUNDLE) as Bundle
         val autoCaptureEnabled = initialBundle.getBoolean(EdgeDetectionHandler.AUTO_CAPTURE, false)
 
-        findViewById<View>(R.id.paper_rect).visibility =
-            if (autoCaptureEnabled) View.INVISIBLE else View.VISIBLE
+        getPaperRect().setAutoGuideMode(autoCaptureEnabled)
+        findViewById<View>(R.id.paper_rect).visibility = View.VISIBLE
         findViewById<View>(R.id.shut).visibility =
             if (autoCaptureEnabled) View.GONE else View.VISIBLE
 

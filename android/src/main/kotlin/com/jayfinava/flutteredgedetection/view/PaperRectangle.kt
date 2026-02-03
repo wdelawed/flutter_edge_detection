@@ -24,6 +24,8 @@ class PaperRectangle : View {
 
     private val rectPaint = Paint()
     private val circlePaint = Paint()
+    private val autoGuidePaint = Paint()
+    private val autoGuideDimPaint = Paint()
     private var ratioX: Double = 1.0
     private var ratioY: Double = 1.0
     private var tl: Point = Point()
@@ -33,6 +35,9 @@ class PaperRectangle : View {
     private val path: Path = Path()
     private var point2Move = Point()
     private var cropMode = false
+    private var autoGuideMode = false
+    private var autoGuideDetected = false
+    private val autoGuideZone = RectF()
     private var latestDownX = 0.0F
     private var latestDownY = 0.0F
 
@@ -51,6 +56,67 @@ class PaperRectangle : View {
         circlePaint.isAntiAlias = true
         circlePaint.strokeWidth = 4F
         circlePaint.style = Paint.Style.STROKE
+
+        autoGuidePaint.isAntiAlias = true
+        autoGuidePaint.isDither = true
+        autoGuidePaint.style = Paint.Style.STROKE
+        autoGuidePaint.strokeWidth = 8f
+
+        autoGuideDimPaint.color = Color.argb(110, 0, 0, 0)
+        autoGuideDimPaint.style = Paint.Style.FILL
+    }
+
+    fun setAutoGuideMode(enabled: Boolean) {
+        autoGuideMode = enabled
+        autoGuideDetected = false
+        if (enabled) {
+            path.reset()
+            cropMode = false
+        }
+        invalidate()
+    }
+
+    fun setAutoGuideDetected(detected: Boolean) {
+        if (autoGuideDetected == detected) return
+        autoGuideDetected = detected
+        invalidate()
+    }
+
+    fun isInsideAutoGuide(corners: Corners): Boolean {
+        if (!autoGuideMode || autoGuideZone.isEmpty || measuredWidth == 0 || measuredHeight == 0) {
+            return false
+        }
+
+        ratioX = corners.size.width.div(measuredWidth)
+        ratioY = corners.size.height.div(measuredHeight)
+        if (ratioX == 0.0 || ratioY == 0.0) return false
+
+        val zone = RectF(autoGuideZone)
+        val mappedPoints = corners.corners.map { point ->
+            PointF((point.x / ratioX).toFloat(), (point.y / ratioY).toFloat())
+        }
+        if (mappedPoints.size != 4) return false
+
+        val bounds = RectF(
+            mappedPoints.minOf { it.x },
+            mappedPoints.minOf { it.y },
+            mappedPoints.maxOf { it.x },
+            mappedPoints.maxOf { it.y }
+        )
+        val boundsArea = bounds.width() * bounds.height()
+        if (boundsArea <= 0f) return false
+
+        val center = PointF(
+            mappedPoints.map { it.x }.average().toFloat(),
+            mappedPoints.map { it.y }.average().toFloat()
+        )
+        if (!zone.contains(center.x, center.y)) return false
+
+        val intersection = RectF()
+        if (!intersection.setIntersect(zone, bounds)) return false
+        val overlapRatio = (intersection.width() * intersection.height()) / boundsArea
+
+        return overlapRatio >= 0.55f
     }
 
     fun onCornersDetected(corners: Corners) {
@@ -119,6 +185,11 @@ class PaperRectangle : View {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        if (autoGuideMode) {
+            drawAutoGuide(canvas)
+            return
+        }
+
         rectPaint.color = Color.WHITE
         rectPaint.strokeWidth = 6F
         rectPaint.style = Paint.Style.STROKE
@@ -135,6 +206,24 @@ class PaperRectangle : View {
             canvas.drawCircle(bl.x.toFloat(), bl.y.toFloat(), 20F, circlePaint)
             canvas.drawCircle(br.x.toFloat(), br.y.toFloat(), 20F, circlePaint)
         }
+    }
+
+    private fun drawAutoGuide(canvas: Canvas) {
+        if (autoGuideZone.isEmpty) return
+
+        val outer = Path().apply {
+            fillType = Path.FillType.EVEN_ODD
+            addRect(0f, 0f, width.toFloat(), height.toFloat(), Path.Direction.CW)
+            addRoundRect(autoGuideZone, 22f, 22f, Path.Direction.CCW)
+        }
+        canvas.drawPath(outer, autoGuideDimPaint)
+
+        autoGuidePaint.color = if (autoGuideDetected) {
+            Color.parseColor("#2ECC71")
+        } else {
+            Color.parseColor("#FF4D4F")
+        }
+        canvas.drawRoundRect(autoGuideZone, 22f, 22f, autoGuidePaint)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -196,5 +285,29 @@ class PaperRectangle : View {
         br.y = br.y.times(ratioY)
         bl.x = bl.x.times(ratioX)
         bl.y = bl.y.times(ratioY)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+
+        val passportRatio = 125.0 / 88.0
+        val maxZoneWidth = w * 0.84
+        val maxZoneHeight = h * 0.52
+
+        var zoneWidth = maxZoneWidth
+        var zoneHeight = zoneWidth / passportRatio
+        if (zoneHeight > maxZoneHeight) {
+            zoneHeight = maxZoneHeight
+            zoneWidth = zoneHeight * passportRatio
+        }
+
+        val centerX = w * 0.5
+        val centerY = h * 0.40
+        autoGuideZone.set(
+            (centerX - zoneWidth * 0.5).toFloat(),
+            (centerY - zoneHeight * 0.5).toFloat(),
+            (centerX + zoneWidth * 0.5).toFloat(),
+            (centerY + zoneHeight * 0.5).toFloat()
+        )
     }
 }

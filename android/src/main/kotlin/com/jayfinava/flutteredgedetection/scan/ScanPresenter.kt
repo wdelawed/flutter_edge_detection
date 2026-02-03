@@ -93,6 +93,7 @@ class ScanPresenter constructor(
     fun start() {
         if (autoCaptureEnabled) {
             resetAutoCaptureTracking()
+            iView.getPaperRect().setAutoGuideDetected(false)
         }
         mCamera?.startPreview() ?:
         Log.i(TAG, "mCamera startPreview")
@@ -215,11 +216,17 @@ class ScanPresenter constructor(
         val displayHeight = maxOf(point.x, point.y)
         val displayRatio = displayWidth.div(displayHeight.toFloat())
         val previewRatio = size?.height?.toFloat()?.div(size.width.toFloat()) ?: displayRatio
+        val surfaceView = iView.getSurfaceView()
         if (displayRatio > previewRatio) {
-            val surfaceParams = iView.getSurfaceView().layoutParams
+            val surfaceParams = surfaceView.layoutParams
             surfaceParams.height = (displayHeight / displayRatio * previewRatio).toInt()
-            iView.getSurfaceView().layoutParams = surfaceParams
+            surfaceView.layoutParams = surfaceParams
         }
+        // Keep guide overlay aligned with the visible camera preview area.
+        val guideParams = iView.getPaperRect().layoutParams
+        guideParams.width = surfaceView.layoutParams.width
+        guideParams.height = surfaceView.layoutParams.height
+        iView.getPaperRect().layoutParams = guideParams
 
         val supportPicSize = mCamera?.parameters?.supportedPictureSizes
         supportPicSize?.sortByDescending { it.width.times(it.height) }
@@ -292,11 +299,18 @@ class ScanPresenter constructor(
         val captureCorners = processPicture(resizedMat, requireTemporalStability = false)
         val previewCorners = mapPreviewCornersToSize(resizedMat.size())
         val selectedCorners = pickBestCorners(captureCorners, previewCorners)
+        val hasDetectedPassport = selectedCorners?.corners?.size == 4
+        Log.i(
+            TAG,
+            "Auto-capture detection result: detected=$hasDetectedPassport score=${selectedCorners?.let { cornersScore(it) } ?: 0.0}"
+        )
         val rgbaMat = Mat()
         Imgproc.cvtColor(resizedMat, rgbaMat, Imgproc.COLOR_RGB2BGRA)
-        val outputMat = if (selectedCorners?.corners?.size == 4) {
+        val outputMat = if (hasDetectedPassport) {
+            Log.i(TAG, "Passport detected. Saving cropped auto-capture image.")
             cropPicture(rgbaMat, selectedCorners.corners)
         } else {
+            Log.i(TAG, "Passport not detected at capture time. Saving full auto-capture frame.")
             rgbaMat
         }
         saveMatAsJpeg(outputMat)
@@ -321,6 +335,13 @@ class ScanPresenter constructor(
     }
 
     private fun onAutoCaptureCandidate(corners: Corners) {
+        val insideGuideZone = iView.getPaperRect().isInsideAutoGuide(corners)
+        iView.getPaperRect().setAutoGuideDetected(insideGuideZone)
+        if (!insideGuideZone) {
+            resetAutoCaptureTracking()
+            return
+        }
+
         val score = cornersScore(corners)
         if (score <= 0.0) {
             resetAutoCaptureTracking()
@@ -337,6 +358,7 @@ class ScanPresenter constructor(
     }
 
     private fun onAutoCaptureMiss() {
+        iView.getPaperRect().setAutoGuideDetected(false)
         resetAutoCaptureTracking()
     }
 
