@@ -55,6 +55,15 @@ Future<void> scanWithCamera() async {
       androidCropReset: 'Reset',
       androidAutoCapture: true,
       androidAutoCaptureMinGoodFrames: 4,
+      androidAutoCaptureTextNoPassport: 'Place passport inside the frame',
+      androidAutoCaptureTextHoldStill: 'Hold still',
+      androidAutoCaptureTextCapturing: 'Capturing...',
+      androidAutoCapturePreviewButtonTextColor: '#FFFFFFFF',
+      androidAutoCapturePreviewButtonTextSize: 16,
+      androidAutoCapturePreviewButtonHorizontalPadding: 16,
+      androidAutoCapturePreviewButtonVerticalPadding: 10,
+      androidAutoCapturePreviewButtonBackgroundColor: '#73000000',
+      androidAutoCapturePreviewButtonBorderRadius: 12,
     );
 
     if (success) {
@@ -126,6 +135,15 @@ Scans an object using the camera with edge detection.
 - `androidCropReset` (String, optional): Title for the reset button on Android (default: "Reset")
 - `androidAutoCapture` (bool, optional): Enable automatic capture mode on Android (default: `false`)
 - `androidAutoCaptureMinGoodFrames` (int, optional): Number of good preview detections required before capture (default: `4`)
+- `androidAutoCaptureTextNoPassport` (String, optional): Auto-capture instruction when no passport is detected (default: `"Place your passport inside the guide"`)
+- `androidAutoCaptureTextHoldStill` (String, optional): Auto-capture instruction when passport is detected (default: `"Hold your position"`)
+- `androidAutoCaptureTextCapturing` (String, optional): Auto-capture instruction while capturing (default: `"Capturing..."`)
+- `androidAutoCapturePreviewButtonTextColor` (String, optional): Preview CTA button text color in hex (default: `"#FFFFFFFF"`)
+- `androidAutoCapturePreviewButtonTextSize` (double, optional): Preview CTA button text size in sp (default: `16`)
+- `androidAutoCapturePreviewButtonHorizontalPadding` (double, optional): Preview CTA button horizontal padding in dp (default: `16`)
+- `androidAutoCapturePreviewButtonVerticalPadding` (double, optional): Preview CTA button vertical padding in dp (default: `10`)
+- `androidAutoCapturePreviewButtonBackgroundColor` (String, optional): Preview CTA button background color in hex (default: `"#73000000"`)
+- `androidAutoCapturePreviewButtonBorderRadius` (double, optional): Preview CTA button corner radius in dp (default: `12`)
 
 **Returns:** `Future<bool>` - `true` if successful, `false` if cancelled
 

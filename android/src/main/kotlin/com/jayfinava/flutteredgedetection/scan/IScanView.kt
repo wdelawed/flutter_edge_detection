@@ -10,5 +10,6 @@ interface IScanView {
         fun getCurrentDisplay(): Display?
         fun getSurfaceView(): SurfaceView
         fun getPaperRect(): PaperRectangle
+        fun setAutoCaptureInstructionText(text: String)
     }
 }

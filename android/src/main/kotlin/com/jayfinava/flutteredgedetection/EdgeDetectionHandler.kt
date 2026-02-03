@@ -28,9 +28,27 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         const val CROP_RESET_TITLE = "crop_reset_title"
         const val AUTO_CAPTURE = "auto_capture"
         const val AUTO_CAPTURE_MIN_GOOD_FRAMES = "auto_capture_min_good_frames"
+        const val AUTO_CAPTURE_TEXT_NO_PASSPORT = "auto_capture_text_no_passport"
+        const val AUTO_CAPTURE_TEXT_HOLD_STILL = "auto_capture_text_hold_still"
+        const val AUTO_CAPTURE_TEXT_CAPTURING = "auto_capture_text_capturing"
+        const val AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR = "auto_capture_preview_button_text_color"
+        const val AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE = "auto_capture_preview_button_text_size"
+        const val AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING = "auto_capture_preview_button_horizontal_padding"
+        const val AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING = "auto_capture_preview_button_vertical_padding"
+        const val AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR = "auto_capture_preview_button_background_color"
+        const val AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS = "auto_capture_preview_button_border_radius"
         const val REQUEST_CODE = 1001
         const val ERROR_CODE = 1002
         private const val DEFAULT_AUTO_CAPTURE_MIN_GOOD_FRAMES = 4
+        private const val DEFAULT_AUTO_CAPTURE_TEXT_NO_PASSPORT = "Place your passport inside the guide"
+        private const val DEFAULT_AUTO_CAPTURE_TEXT_HOLD_STILL = "Hold your position"
+        private const val DEFAULT_AUTO_CAPTURE_TEXT_CAPTURING = "Capturing..."
+        private const val DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR = "#FFFFFFFF"
+        private const val DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE = 16.0
+        private const val DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING = 16.0
+        private const val DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING = 10.0
+        private const val DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR = "#73000000"
+        private const val DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS = 12.0
     }
 
     fun setActivityPluginBinding(activityPluginBinding: ActivityPluginBinding?) {
@@ -123,6 +141,51 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
                     call.argument<Int>(AUTO_CAPTURE_MIN_GOOD_FRAMES)
                         ?: DEFAULT_AUTO_CAPTURE_MIN_GOOD_FRAMES
                 )
+            )
+            putString(
+                AUTO_CAPTURE_TEXT_NO_PASSPORT,
+                call.argument<String>(AUTO_CAPTURE_TEXT_NO_PASSPORT)
+                    ?: DEFAULT_AUTO_CAPTURE_TEXT_NO_PASSPORT
+            )
+            putString(
+                AUTO_CAPTURE_TEXT_HOLD_STILL,
+                call.argument<String>(AUTO_CAPTURE_TEXT_HOLD_STILL)
+                    ?: DEFAULT_AUTO_CAPTURE_TEXT_HOLD_STILL
+            )
+            putString(
+                AUTO_CAPTURE_TEXT_CAPTURING,
+                call.argument<String>(AUTO_CAPTURE_TEXT_CAPTURING)
+                    ?: DEFAULT_AUTO_CAPTURE_TEXT_CAPTURING
+            )
+            putString(
+                AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR,
+                call.argument<String>(AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR)
+                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE)?.toDouble()
+                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING)?.toDouble()
+                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING)?.toDouble()
+                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING
+            )
+            putString(
+                AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR,
+                call.argument<String>(AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR)
+                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS)?.toDouble()
+                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS
             )
         }
 

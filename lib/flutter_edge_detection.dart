@@ -19,6 +19,15 @@ class FlutterEdgeDetection {
   /// [androidCropReset] is the title for the reset button on Android.
   /// [androidAutoCapture] enables automatic capture mode on Android.
   /// [androidAutoCaptureMinGoodFrames] controls how many good preview frames are required before auto capture.
+  /// [androidAutoCaptureTextNoPassport] is shown when no passport is detected in the overlay.
+  /// [androidAutoCaptureTextHoldStill] is shown when passport is detected and user should hold still.
+  /// [androidAutoCaptureTextCapturing] is shown while image is being captured.
+  /// [androidAutoCapturePreviewButtonTextColor] controls preview CTA button text color (hex, e.g. `#FFFFFF`).
+  /// [androidAutoCapturePreviewButtonTextSize] controls preview CTA button text size in sp.
+  /// [androidAutoCapturePreviewButtonHorizontalPadding] controls preview CTA button horizontal padding in dp.
+  /// [androidAutoCapturePreviewButtonVerticalPadding] controls preview CTA button vertical padding in dp.
+  /// [androidAutoCapturePreviewButtonBackgroundColor] controls preview CTA button background color (hex).
+  /// [androidAutoCapturePreviewButtonBorderRadius] controls preview CTA button corner radius in dp.
   ///
   /// Returns `true` if the operation was successful, `false` otherwise.
   static Future<bool> detectEdge(
@@ -30,6 +39,16 @@ class FlutterEdgeDetection {
     String androidCropReset = 'Reset',
     bool androidAutoCapture = false,
     int androidAutoCaptureMinGoodFrames = 4,
+    String androidAutoCaptureTextNoPassport =
+        'Place your passport inside the guide',
+    String androidAutoCaptureTextHoldStill = 'Hold your position',
+    String androidAutoCaptureTextCapturing = 'Capturing...',
+    String androidAutoCapturePreviewButtonTextColor = '#FFFFFFFF',
+    double androidAutoCapturePreviewButtonTextSize = 16.0,
+    double androidAutoCapturePreviewButtonHorizontalPadding = 16.0,
+    double androidAutoCapturePreviewButtonVerticalPadding = 10.0,
+    String androidAutoCapturePreviewButtonBackgroundColor = '#73000000',
+    double androidAutoCapturePreviewButtonBorderRadius = 12.0,
   }) async {
     try {
       final bool? result = await _channel.invokeMethod('edge_detect', {
@@ -41,6 +60,21 @@ class FlutterEdgeDetection {
         'crop_reset_title': androidCropReset,
         'auto_capture': androidAutoCapture,
         'auto_capture_min_good_frames': androidAutoCaptureMinGoodFrames,
+        'auto_capture_text_no_passport': androidAutoCaptureTextNoPassport,
+        'auto_capture_text_hold_still': androidAutoCaptureTextHoldStill,
+        'auto_capture_text_capturing': androidAutoCaptureTextCapturing,
+        'auto_capture_preview_button_text_color':
+            androidAutoCapturePreviewButtonTextColor,
+        'auto_capture_preview_button_text_size':
+            androidAutoCapturePreviewButtonTextSize,
+        'auto_capture_preview_button_horizontal_padding':
+            androidAutoCapturePreviewButtonHorizontalPadding,
+        'auto_capture_preview_button_vertical_padding':
+            androidAutoCapturePreviewButtonVerticalPadding,
+        'auto_capture_preview_button_background_color':
+            androidAutoCapturePreviewButtonBackgroundColor,
+        'auto_capture_preview_button_border_radius':
+            androidAutoCapturePreviewButtonBorderRadius,
       });
       return result ?? false;
     } on PlatformException catch (e) {

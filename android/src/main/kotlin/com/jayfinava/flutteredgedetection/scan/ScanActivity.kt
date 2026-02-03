@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.exifinterface.media.ExifInterface
@@ -51,8 +52,15 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
         getPaperRect().setAutoGuideMode(autoCaptureEnabled)
         findViewById<View>(R.id.paper_rect).visibility = View.VISIBLE
+        findViewById<View>(R.id.auto_capture_instruction).visibility =
+            if (autoCaptureEnabled) View.VISIBLE else View.GONE
         findViewById<View>(R.id.shut).visibility =
             if (autoCaptureEnabled) View.GONE else View.VISIBLE
+        if (autoCaptureEnabled) {
+            setAutoCaptureInstructionText(
+                initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_NO_PASSPORT) ?: ""
+            )
+        }
 
         findViewById<View>(R.id.shut).setOnClickListener {
             if (mPresenter.canShut) {
@@ -134,6 +142,10 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
     override fun getSurfaceView() = findViewById<SurfaceView>(R.id.surface)
 
     override fun getPaperRect() = findViewById<PaperRectangle>(R.id.paper_rect)
+
+    override fun setAutoCaptureInstructionText(text: String) {
+        findViewById<TextView>(R.id.auto_capture_instruction).text = text
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

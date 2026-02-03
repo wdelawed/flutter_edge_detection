@@ -103,6 +103,7 @@ class PaperRectangle : View {
             mappedPoints.maxOf { it.x },
             mappedPoints.maxOf { it.y }
         )
+        if (bounds.width() < bounds.height() * 1.1f) return false
         val boundsArea = bounds.width() * bounds.height()
         if (boundsArea <= 0f) return false
 
@@ -291,8 +292,8 @@ class PaperRectangle : View {
         super.onSizeChanged(w, h, oldw, oldh)
 
         val passportRatio = 125.0 / 88.0
-        val maxZoneWidth = w * 0.84
-        val maxZoneHeight = h * 0.52
+        val maxZoneWidth = w * 0.92
+        val maxZoneHeight = h * 0.62
 
         var zoneWidth = maxZoneWidth
         var zoneHeight = zoneWidth / passportRatio
@@ -302,7 +303,7 @@ class PaperRectangle : View {
         }
 
         val centerX = w * 0.5
-        val centerY = h * 0.40
+        val centerY = h * 0.42
         autoGuideZone.set(
             (centerX - zoneWidth * 0.5).toFloat(),
             (centerY - zoneHeight * 0.5).toFloat(),

@@ -70,6 +70,15 @@ class ScanPresenter constructor(
         initialBundle.getBoolean(EdgeDetectionHandler.AUTO_CAPTURE, false)
     private val autoCaptureMinGoodFrames: Int =
         max(1, initialBundle.getInt(EdgeDetectionHandler.AUTO_CAPTURE_MIN_GOOD_FRAMES, 4))
+    private val autoCaptureTextNoPassport: String =
+        initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_NO_PASSPORT)
+            ?: "Place your passport inside the guide"
+    private val autoCaptureTextHoldStill: String =
+        initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_HOLD_STILL)
+            ?: "Hold your position"
+    private val autoCaptureTextCapturing: String =
+        initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_CAPTURING)
+            ?: "Capturing..."
     private var pendingAutoCapture = false
     private var autoCaptureInFlight = false
     private var goodFrameStreak = 0
@@ -94,6 +103,7 @@ class ScanPresenter constructor(
         if (autoCaptureEnabled) {
             resetAutoCaptureTracking()
             iView.getPaperRect().setAutoGuideDetected(false)
+            iView.setAutoCaptureInstructionText(autoCaptureTextNoPassport)
         }
         mCamera?.startPreview() ?:
         Log.i(TAG, "mCamera startPreview")
@@ -128,6 +138,9 @@ class ScanPresenter constructor(
         autoCaptureInFlight = autoCapture
         busy = true
         shutted = false
+        if (autoCapture) {
+            iView.setAutoCaptureInstructionText(autoCaptureTextCapturing)
+        }
         Log.i(TAG, "try to focus")
         camera.autoFocus { b, _ ->
             Log.i(TAG, "focus result: $b")
@@ -338,10 +351,12 @@ class ScanPresenter constructor(
         val insideGuideZone = iView.getPaperRect().isInsideAutoGuide(corners)
         iView.getPaperRect().setAutoGuideDetected(insideGuideZone)
         if (!insideGuideZone) {
+            iView.setAutoCaptureInstructionText(autoCaptureTextNoPassport)
             resetAutoCaptureTracking()
             return
         }
 
+        iView.setAutoCaptureInstructionText(autoCaptureTextHoldStill)
         val score = cornersScore(corners)
         if (score <= 0.0) {
             resetAutoCaptureTracking()
@@ -359,6 +374,7 @@ class ScanPresenter constructor(
 
     private fun onAutoCaptureMiss() {
         iView.getPaperRect().setAutoGuideDetected(false)
+        iView.setAutoCaptureInstructionText(autoCaptureTextNoPassport)
         resetAutoCaptureTracking()
     }
 
