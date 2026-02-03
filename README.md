@@ -53,6 +53,8 @@ Future<void> scanWithCamera() async {
       androidCropTitle: 'Crop',
       androidCropBlackWhiteTitle: 'Black White',
       androidCropReset: 'Reset',
+      androidAutoCapture: true,
+      androidAutoCaptureMinGoodFrames: 4,
     );
 
     if (success) {
@@ -122,6 +124,8 @@ Scans an object using the camera with edge detection.
 - `androidCropTitle` (String, optional): Title for the crop button on Android (default: "Crop")
 - `androidCropBlackWhiteTitle` (String, optional): Title for the black/white filter button on Android (default: "Black White")
 - `androidCropReset` (String, optional): Title for the reset button on Android (default: "Reset")
+- `androidAutoCapture` (bool, optional): Enable automatic capture mode on Android (default: `false`)
+- `androidAutoCaptureMinGoodFrames` (int, optional): Number of good preview detections required before capture (default: `4`)
 
 **Returns:** `Future<bool>` - `true` if successful, `false` if cancelled
 

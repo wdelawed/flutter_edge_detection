@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Point
 import android.graphics.Rect
@@ -24,6 +25,7 @@ import com.jayfinava.flutteredgedetection.REQUEST_CODE
 import com.jayfinava.flutteredgedetection.SourceManager
 import com.jayfinava.flutteredgedetection.crop.CropActivity
 import com.jayfinava.flutteredgedetection.processor.Corners
+import com.jayfinava.flutteredgedetection.processor.cropPicture
 import com.jayfinava.flutteredgedetection.processor.processPicture
 import io.reactivex.Observable
 import io.reactivex.Scheduler
@@ -38,12 +40,14 @@ import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import java.io.ByteArrayOutputStream
+import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.max
 import kotlin.math.min
 import android.util.Size as SizeB
+import org.opencv.core.Point as CvPoint
 
 class ScanPresenter constructor(
     private val context: Context,
@@ -62,6 +66,15 @@ class ScanPresenter constructor(
 
     private var mLastClickTime = 0L
     private var shutted: Boolean = true
+    private val autoCaptureEnabled: Boolean =
+        initialBundle.getBoolean(EdgeDetectionHandler.AUTO_CAPTURE, false)
+    private val autoCaptureMinGoodFrames: Int =
+        max(1, initialBundle.getInt(EdgeDetectionHandler.AUTO_CAPTURE_MIN_GOOD_FRAMES, 4))
+    private var pendingAutoCapture = false
+    private var autoCaptureInFlight = false
+    private var goodFrameStreak = 0
+    private var bestPreviewCorners: Corners? = null
+    private var bestPreviewScore = 0.0
 
     init {
         mSurfaceHolder.addCallback(this)
@@ -78,6 +91,9 @@ class ScanPresenter constructor(
     }
 
     fun start() {
+        if (autoCaptureEnabled) {
+            resetAutoCaptureTracking()
+        }
         mCamera?.startPreview() ?:
         Log.i(TAG, "mCamera startPreview")
     }
@@ -94,16 +110,29 @@ class ScanPresenter constructor(
             Log.i(TAG, "NOT Taking click")
             return
         }
+        triggerPictureCapture(autoCapture = false)
+    }
+
+    private fun triggerPictureCapture(autoCapture: Boolean) {
+        val camera = mCamera ?: run {
+            busy = false
+            shutted = true
+            autoCaptureInFlight = false
+            return
+        }
+        if (!shutted || busy) {
+            return
+        }
+        pendingAutoCapture = autoCapture
+        autoCaptureInFlight = autoCapture
         busy = true
         shutted = false
         Log.i(TAG, "try to focus")
-
-        mCamera?.autoFocus { b, _ ->
+        camera.autoFocus { b, _ ->
             Log.i(TAG, "focus result: $b")
-            mCamera?.enableShutterSound(false)
-            mCamera?.takePicture(null, null, this)
+            camera.enableShutterSound(false)
+            camera.takePicture(null, null, this)
         }
-
     }
 
     fun toggleFlash() {
@@ -258,6 +287,125 @@ class ScanPresenter constructor(
         (context as Activity).startActivityForResult(cropIntent, REQUEST_CODE)
     }
 
+    private fun detectAndSaveAutoCapture(pic: Mat) {
+        val resizedMat = matrixResizer(pic)
+        val captureCorners = processPicture(resizedMat, requireTemporalStability = false)
+        val previewCorners = mapPreviewCornersToSize(resizedMat.size())
+        val selectedCorners = pickBestCorners(captureCorners, previewCorners)
+        val rgbaMat = Mat()
+        Imgproc.cvtColor(resizedMat, rgbaMat, Imgproc.COLOR_RGB2BGRA)
+        val outputMat = if (selectedCorners?.corners?.size == 4) {
+            cropPicture(rgbaMat, selectedCorners.corners)
+        } else {
+            rgbaMat
+        }
+        saveMatAsJpeg(outputMat)
+        if (outputMat !== rgbaMat) {
+            outputMat.release()
+            rgbaMat.release()
+        } else {
+            outputMat.release()
+        }
+    }
+
+    private fun saveMatAsJpeg(mat: Mat) {
+        val outputPath = initialBundle.getString(EdgeDetectionHandler.SAVE_TO)
+            ?: throw IllegalStateException("Missing save path")
+        val bitmap = Bitmap.createBitmap(mat.width(), mat.height(), Bitmap.Config.ARGB_8888)
+        Utils.matToBitmap(mat, bitmap, true)
+        FileOutputStream(outputPath).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            out.flush()
+        }
+        bitmap.recycle()
+    }
+
+    private fun onAutoCaptureCandidate(corners: Corners) {
+        val score = cornersScore(corners)
+        if (score <= 0.0) {
+            resetAutoCaptureTracking()
+            return
+        }
+        goodFrameStreak += 1
+        if (score > bestPreviewScore) {
+            bestPreviewScore = score
+            bestPreviewCorners = cloneCorners(corners)
+        }
+        if (goodFrameStreak >= autoCaptureMinGoodFrames && !autoCaptureInFlight) {
+            triggerPictureCapture(autoCapture = true)
+        }
+    }
+
+    private fun onAutoCaptureMiss() {
+        resetAutoCaptureTracking()
+    }
+
+    private fun resetAutoCaptureTracking() {
+        goodFrameStreak = 0
+        bestPreviewScore = 0.0
+        bestPreviewCorners = null
+    }
+
+    private fun cloneCorners(corners: Corners): Corners {
+        val copiedPoints = corners.corners.map { CvPoint(it.x, it.y) }
+        return Corners(copiedPoints, Size(corners.size.width, corners.size.height))
+    }
+
+    private fun mapPreviewCornersToSize(target: Size): Corners? {
+        val previewCorners = bestPreviewCorners ?: return null
+        if (previewCorners.size.width <= 0.0 || previewCorners.size.height <= 0.0) {
+            return null
+        }
+        val ratioX = target.width / previewCorners.size.width
+        val ratioY = target.height / previewCorners.size.height
+        val mapped = previewCorners.corners.map { CvPoint(it.x * ratioX, it.y * ratioY) }
+        return Corners(mapped, target)
+    }
+
+    private fun pickBestCorners(first: Corners?, second: Corners?): Corners? {
+        val candidates = listOfNotNull(first, second)
+        if (candidates.isEmpty()) return null
+        return candidates.maxByOrNull { cornersScore(it) }
+    }
+
+    private fun cornersScore(corners: Corners): Double {
+        if (corners.corners.size != 4) return 0.0
+        val area = quadArea(corners.corners)
+        val frameArea = corners.size.width * corners.size.height
+        if (area <= 0.0 || frameArea <= 0.0) return 0.0
+        return area / frameArea
+    }
+
+    private fun quadArea(points: List<CvPoint>): Double {
+        if (points.size != 4) return 0.0
+        var sum = 0.0
+        for (i in points.indices) {
+            val j = (i + 1) % points.size
+            sum += points[i].x * points[j].y - points[j].x * points[i].y
+        }
+        return kotlin.math.abs(sum) * 0.5
+    }
+
+    private fun openAutoCapturePreview() {
+        val activity = context as? Activity ?: return
+        activity.runOnUiThread {
+            val previewIntent = Intent(activity, AutoCapturePreviewActivity::class.java)
+            previewIntent.putExtra(EdgeDetectionHandler.INITIAL_BUNDLE, initialBundle)
+            activity.startActivityForResult(previewIntent, REQUEST_CODE)
+        }
+    }
+
+    private fun finishAutoCaptureWithError(message: String) {
+        val activity = context as? Activity ?: return
+        activity.runOnUiThread {
+            val errorIntent = Intent().apply {
+                putExtra("RESULT", message)
+            }
+            activity.setResult(EdgeDetectionHandler.ERROR_CODE, errorIntent)
+            activity.finish()
+        }
+    }
+
     override fun surfaceCreated(p0: SurfaceHolder) {
         initCamera()
     }
@@ -278,25 +426,56 @@ class ScanPresenter constructor(
     @SuppressLint("CheckResult")
     override fun onPictureTaken(p0: ByteArray?, p1: Camera?) {
         Log.i(TAG, "on picture taken")
+        val isAutoCapture = pendingAutoCapture
+        pendingAutoCapture = false
         Observable.just(p0)
             .subscribeOn(proxySchedule)
-            .subscribe {
-                val pictureSize = p1?.parameters?.pictureSize
-                Log.i(TAG, "picture size: " + pictureSize.toString())
-                val mat = Mat(
-                    Size(
-                        pictureSize?.width?.toDouble() ?: 1920.toDouble(),
-                        pictureSize?.height?.toDouble() ?: 1080.toDouble()
-                    ), CvType.CV_8U
-                )
-                mat.put(0, 0, p0)
-                val pic = Imgcodecs.imdecode(mat, Imgcodecs.CV_LOAD_IMAGE_UNCHANGED)
-                Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
-                mat.release()
-                detectEdge(pic)
+            .subscribe({
+                try {
+                    val pictureSize = p1?.parameters?.pictureSize
+                    Log.i(TAG, "picture size: $pictureSize")
+                    val mat = Mat(
+                        Size(
+                            pictureSize?.width?.toDouble() ?: 1920.0,
+                            pictureSize?.height?.toDouble() ?: 1080.0
+                        ),
+                        CvType.CV_8U
+                    )
+                    mat.put(0, 0, p0)
+                    val pic = Imgcodecs.imdecode(mat, Imgcodecs.CV_LOAD_IMAGE_UNCHANGED)
+                    Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
+                    mat.release()
+                    if (isAutoCapture) {
+                        detectAndSaveAutoCapture(pic)
+                        openAutoCapturePreview()
+                    } else {
+                        detectEdge(pic)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Capture processing failed", e)
+                    if (isAutoCapture) {
+                        finishAutoCaptureWithError(e.message ?: "Auto capture failed")
+                    }
+                } finally {
+                    if (isAutoCapture) {
+                        resetAutoCaptureTracking()
+                    }
+                    autoCaptureInFlight = false
+                    pendingAutoCapture = false
+                    shutted = true
+                    busy = false
+                }
+            }, { throwable ->
+                Log.e(TAG, "Picture decode failed", throwable)
+                if (isAutoCapture) {
+                    finishAutoCaptureWithError(throwable.message ?: "Auto capture failed")
+                    resetAutoCaptureTracking()
+                }
+                autoCaptureInFlight = false
+                pendingAutoCapture = false
                 shutted = true
                 busy = false
-            }
+            })
     }
 
     @SuppressLint("CheckResult")
@@ -332,22 +511,37 @@ class ScanPresenter constructor(
                     }
 
                     Observable.create<Corners> {
-                        val corner = processPicture(img, requireTemporalStability = true)
-                        busy = false
-                        if (null != corner && corner.corners.size == 4) {
-                            it.onNext(corner)
-                        } else {
-                            it.onError(Throwable("paper not detected"))
+                        try {
+                            val corner = processPicture(img, requireTemporalStability = true)
+                            if (null != corner && corner.corners.size == 4) {
+                                it.onNext(corner)
+                            } else {
+                                it.onError(Throwable("paper not detected"))
+                            }
+                        } finally {
+                            busy = false
+                            img.release()
                         }
                     }.observeOn(AndroidSchedulers.mainThread())
                         .subscribe({
-                            iView.getPaperRect().onCornersDetected(it)
-
+                            if (autoCaptureEnabled) {
+                                onAutoCaptureCandidate(it)
+                            } else {
+                                iView.getPaperRect().onCornersDetected(it)
+                            }
                         }, {
-                            iView.getPaperRect().onCornersNotDetected()
+                            if (autoCaptureEnabled) {
+                                onAutoCaptureMiss()
+                            } else {
+                                iView.getPaperRect().onCornersNotDetected()
+                            }
                         })
-                }, { throwable -> Log.e(TAG, throwable.message!!) })
+                }, { throwable ->
+                    busy = false
+                    Log.e(TAG, throwable.message ?: "Preview processing failed")
+                })
         } catch (e: Exception) {
+            busy = false
             print(e.message)
         }
 

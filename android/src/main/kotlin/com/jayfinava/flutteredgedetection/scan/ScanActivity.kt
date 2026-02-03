@@ -46,6 +46,14 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
             Log.i("OpenCV", "OpenCV loaded Successfully!");
         }
 
+        val initialBundle = intent.getBundleExtra(EdgeDetectionHandler.INITIAL_BUNDLE) as Bundle
+        val autoCaptureEnabled = initialBundle.getBoolean(EdgeDetectionHandler.AUTO_CAPTURE, false)
+
+        findViewById<View>(R.id.paper_rect).visibility =
+            if (autoCaptureEnabled) View.INVISIBLE else View.VISIBLE
+        findViewById<View>(R.id.shut).visibility =
+            if (autoCaptureEnabled) View.GONE else View.VISIBLE
+
         findViewById<View>(R.id.shut).setOnClickListener {
             if (mPresenter.canShut) {
                 mPresenter.shut()
@@ -61,8 +69,6 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         findViewById<View>(R.id.flash).setOnClickListener {
             mPresenter.toggleFlash()
         }
-
-        val initialBundle = intent.getBundleExtra(EdgeDetectionHandler.INITIAL_BUNDLE) as Bundle
 
         if(!initialBundle.containsKey(EdgeDetectionHandler.FROM_GALLERY)){
             this.title = initialBundle.getString(EdgeDetectionHandler.SCAN_TITLE, "") as String
@@ -139,6 +145,12 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
             } else {
                 if (intent.hasExtra(EdgeDetectionHandler.FROM_GALLERY) && intent.getBooleanExtra(EdgeDetectionHandler.FROM_GALLERY, false))
                     finish()
+                else {
+                    val initialBundle = intent.getBundleExtra(EdgeDetectionHandler.INITIAL_BUNDLE)
+                    if (initialBundle?.getBoolean(EdgeDetectionHandler.AUTO_CAPTURE, false) == true) {
+                        mPresenter.start()
+                    }
+                }
             }
         }
 

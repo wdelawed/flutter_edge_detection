@@ -131,11 +131,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
       final success = await FlutterEdgeDetection.detectEdge(
         imagePath,
-        canUseGallery: true,
+        canUseGallery: false,
         androidScanTitle: 'Scanning',
         androidCropTitle: 'Crop',
         androidCropBlackWhiteTitle: 'Black White',
         androidCropReset: 'Reset',
+        androidAutoCapture: true, 
       );
 
       if (mounted) {

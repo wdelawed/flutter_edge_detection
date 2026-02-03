@@ -24,6 +24,10 @@
             android:name=".crop.CropActivity"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".scan.AutoCapturePreviewActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

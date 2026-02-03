@@ -11,6 +11,8 @@
     <string name="rotate">Rotate</string>
     <string name="reset">Reset</string>
     <string name="scan">Scanning</string>
+    <string name="preview">Preview</string>
+    <string name="retake">Retake</string>
 
     <string name="next">Next</string>
     <string name="done">Done</string>

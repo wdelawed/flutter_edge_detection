@@ -10,7 +10,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry
-import android.net.Uri
+import kotlin.math.max
 
 class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultListener {
     private var activityPluginBinding: ActivityPluginBinding? = null
@@ -26,8 +26,11 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         const val CROP_TITLE = "crop_title"
         const val CROP_BLACK_WHITE_TITLE = "crop_black_white_title"
         const val CROP_RESET_TITLE = "crop_reset_title"
+        const val AUTO_CAPTURE = "auto_capture"
+        const val AUTO_CAPTURE_MIN_GOOD_FRAMES = "auto_capture_min_good_frames"
         const val REQUEST_CODE = 1001
         const val ERROR_CODE = 1002
+        private const val DEFAULT_AUTO_CAPTURE_MIN_GOOD_FRAMES = 4
     }
 
     fun setActivityPluginBinding(activityPluginBinding: ActivityPluginBinding?) {
@@ -112,6 +115,15 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
             putString(CROP_BLACK_WHITE_TITLE, call.argument<String>(CROP_BLACK_WHITE_TITLE))
             putString(CROP_RESET_TITLE, call.argument<String>(CROP_RESET_TITLE))
             putBoolean(CAN_USE_GALLERY, call.argument<Boolean>(CAN_USE_GALLERY) ?: true)
+            putBoolean(AUTO_CAPTURE, call.argument<Boolean>(AUTO_CAPTURE) ?: false)
+            putInt(
+                AUTO_CAPTURE_MIN_GOOD_FRAMES,
+                max(
+                    1,
+                    call.argument<Int>(AUTO_CAPTURE_MIN_GOOD_FRAMES)
+                        ?: DEFAULT_AUTO_CAPTURE_MIN_GOOD_FRAMES
+                )
+            )
         }
 
         initialIntent.putExtra(INITIAL_BUNDLE, bundle)
@@ -173,4 +185,4 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         methodCall = null
         result = null
     }
-} 
+}

@@ -17,6 +17,8 @@ class FlutterEdgeDetection {
   /// [androidCropTitle] is the title for the crop button on Android.
   /// [androidCropBlackWhiteTitle] is the title for the black/white filter button on Android.
   /// [androidCropReset] is the title for the reset button on Android.
+  /// [androidAutoCapture] enables automatic capture mode on Android.
+  /// [androidAutoCaptureMinGoodFrames] controls how many good preview frames are required before auto capture.
   ///
   /// Returns `true` if the operation was successful, `false` otherwise.
   static Future<bool> detectEdge(
@@ -26,6 +28,8 @@ class FlutterEdgeDetection {
     String androidCropTitle = 'Crop',
     String androidCropBlackWhiteTitle = 'Black White',
     String androidCropReset = 'Reset',
+    bool androidAutoCapture = false,
+    int androidAutoCaptureMinGoodFrames = 4,
   }) async {
     try {
       final bool? result = await _channel.invokeMethod('edge_detect', {
@@ -35,6 +39,8 @@ class FlutterEdgeDetection {
         'crop_title': androidCropTitle,
         'crop_black_white_title': androidCropBlackWhiteTitle,
         'crop_reset_title': androidCropReset,
+        'auto_capture': androidAutoCapture,
+        'auto_capture_min_good_frames': androidAutoCaptureMinGoodFrames,
       });
       return result ?? false;
     } on PlatformException catch (e) {
