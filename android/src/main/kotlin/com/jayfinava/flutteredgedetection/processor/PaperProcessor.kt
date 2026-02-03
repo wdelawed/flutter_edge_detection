@@ -21,8 +21,8 @@ private const val BORDER_MARGIN_PX = 12.0
 private const val PREVIEW_KEEP_LAST_MS = 500L
 private const val PREVIEW_MAX_AVG_MOVE_PX = 20.0
 private const val PREVIEW_MAX_CENTER_MOVE_PX = 20.0
-private const val PREVIEW_MIN_AREA_SCALE = 0.90
-private const val PREVIEW_MAX_AREA_SCALE = 1.10
+private const val PREVIEW_MIN_AREA_SCALE = 0.70
+private const val PREVIEW_MAX_AREA_SCALE = 1.30
 private const val PREVIEW_SMOOTH_ALPHA = 0.24
 
 // ----- Public API -----
