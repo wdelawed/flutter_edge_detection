@@ -14,9 +14,13 @@ private var lastAccepted: List<Point>? = null
 private var stableCount = 0
 
 private const val TARGET_WIDTH = 720.0
+private const val FAST_TARGET_WIDTH = 560.0
 private const val MIN_AREA_RATIO = 0.20
 private const val MAX_AREA_RATIO = 0.70
+private const val AUTO_MIN_AREA_RATIO = 0.10
+private const val AUTO_MAX_AREA_RATIO = 0.88
 private const val BORDER_MARGIN_PX = 12.0
+private const val AUTO_BORDER_MARGIN_PX = 4.0
 
 // ----- Public API -----
 
@@ -34,29 +38,58 @@ private fun quadArea(points: List<Point>): Double {
     return abs(sum) * 0.5
 }
 
-fun processPicture(frame: Mat, requireTemporalStability: Boolean = false): Corners? {
+fun processPicture(
+    frame: Mat,
+    requireTemporalStability: Boolean = false,
+    fastMode: Boolean = false,
+    relaxedValidation: Boolean = false
+): Corners? {
+    if (frame.empty() || frame.width() == 0 || frame.height() == 0) return null
+
+    val useFastProfile = fastMode
+    val targetWidth = if (useFastProfile) {
+        min(FAST_TARGET_WIDTH, frame.width().toDouble())
+    } else {
+        TARGET_WIDTH
+    }
+    val minAreaRatio = if (relaxedValidation) AUTO_MIN_AREA_RATIO else MIN_AREA_RATIO
+    val maxAreaRatio = if (relaxedValidation) AUTO_MAX_AREA_RATIO else MAX_AREA_RATIO
+    val borderMarginPx = if (relaxedValidation) AUTO_BORDER_MARGIN_PX else BORDER_MARGIN_PX
+    val cannyLow = if (useFastProfile) 25.0 else 35.0
+    val cannyHigh = if (useFastProfile) 90.0 else 120.0
+    val adaptiveBlockSize = if (useFastProfile) 23 else 31
+    val adaptiveC = if (useFastProfile) 6.0 else 8.0
+    val closeKernelSize = if (useFastProfile) 5.0 else 7.0
+    val dilateKernelSize = if (useFastProfile) 2.0 else 3.0
+    val contourMode = if (useFastProfile) Imgproc.RETR_EXTERNAL else Imgproc.RETR_LIST
+    val approxRatio = if (useFastProfile) 0.028 else 0.02
 
     // ---------- 1. Resize ----------
-    val scale = TARGET_WIDTH / frame.width()
-    val invScale = frame.width() / TARGET_WIDTH
+    val scale = targetWidth / frame.width()
+    val invScale = frame.width() / targetWidth
     val resized = Mat()
     Imgproc.resize(
         frame,
         resized,
-        Size(TARGET_WIDTH, frame.height() * scale)
+        Size(targetWidth, frame.height() * scale)
     )
     val frameArea = resized.width().toDouble() * resized.height().toDouble()
+    val resizedSize = resized.size()
 
     // ---------- 2. Gray + normalize ----------
     val gray = Mat()
-    Imgproc.cvtColor(resized, gray, Imgproc.COLOR_RGBA2GRAY)
+    when (resized.channels()) {
+        1 -> resized.copyTo(gray)
+        4 -> Imgproc.cvtColor(resized, gray, Imgproc.COLOR_RGBA2GRAY)
+        else -> Imgproc.cvtColor(resized, gray, Imgproc.COLOR_BGR2GRAY)
+    }
     val clahe = Imgproc.createCLAHE(2.0, Size(8.0, 8.0))
     clahe.apply(gray, gray)
     Imgproc.GaussianBlur(gray, gray, Size(5.0, 5.0), 0.0)
 
     // ---------- 3. Build two candidate masks ----------
     val edges = Mat()
-    Imgproc.Canny(gray, edges, 35.0, 120.0)
+    Imgproc.Canny(gray, edges, cannyLow, cannyHigh)
 
     val bin = Mat()
     Imgproc.adaptiveThreshold(
@@ -65,67 +98,79 @@ fun processPicture(frame: Mat, requireTemporalStability: Boolean = false): Corne
         255.0,
         Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
         Imgproc.THRESH_BINARY,
-        31,
-        8.0
+        adaptiveBlockSize,
+        adaptiveC
     )
     Core.bitwise_not(bin, bin)
 
     val merged = Mat()
     Core.bitwise_or(edges, bin, merged)
 
-    val closeKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(7.0, 7.0))
+    val closeKernel =
+        Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(closeKernelSize, closeKernelSize))
+    val dilateKernel =
+        Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(dilateKernelSize, dilateKernelSize))
     Imgproc.morphologyEx(merged, merged, Imgproc.MORPH_CLOSE, closeKernel)
     Imgproc.dilate(
         merged,
         merged,
-        Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.0, 3.0))
+        dilateKernel
     )
 
     // ---------- 4. Find and score candidates ----------
     val contours = ArrayList<MatOfPoint>()
-    Imgproc.findContours(merged, contours, Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE)
+    val hierarchy = Mat()
+    Imgproc.findContours(merged, contours, hierarchy, contourMode, Imgproc.CHAIN_APPROX_SIMPLE)
 
     var best: List<Point>? = null
     var bestScore = -1.0
 
     for (c in contours) {
-        val cArea = Imgproc.contourArea(c)
-        if (cArea < frameArea * MIN_AREA_RATIO || cArea > frameArea * MAX_AREA_RATIO) continue
+        var c2f: MatOfPoint2f? = null
+        var approx: MatOfPoint2f? = null
+        try {
+            val cArea = Imgproc.contourArea(c)
+            if (cArea < frameArea * minAreaRatio || cArea > frameArea * maxAreaRatio) continue
 
-        val c2f = MatOfPoint2f(*c.toArray())
-        val peri = Imgproc.arcLength(c2f, true)
-        if (peri <= 0.0) continue
+            c2f = MatOfPoint2f(*c.toArray())
+            val peri = Imgproc.arcLength(c2f, true)
+            if (peri <= 0.0) continue
 
-        val approx = MatOfPoint2f()
-        Imgproc.approxPolyDP(c2f, approx, 0.02 * peri, true)
+            approx = MatOfPoint2f()
+            Imgproc.approxPolyDP(c2f, approx, approxRatio * peri, true)
 
-        val points = if (approx.total() == 4L) {
-            approx.toArray().toList()
-        } else {
-            val rect = Imgproc.minAreaRect(c2f)
-            val rectPts = arrayOfNulls<Point>(4)
-            rect.points(rectPts)
-            rectPts.filterNotNull()
-        }
-        if (points.size != 4) continue
+            val points = if (approx.total() == 4L) {
+                approx.toArray().toList()
+            } else {
+                val rect = Imgproc.minAreaRect(c2f)
+                val rectPts = arrayOfNulls<Point>(4)
+                rect.points(rectPts)
+                rectPts.filterNotNull()
+            }
+            if (points.size != 4) continue
 
-        val sorted = sortPoints(points)
-        val touchesBorder = sorted.any {
-            it.x <= BORDER_MARGIN_PX ||
-            it.y <= BORDER_MARGIN_PX ||
-            it.x >= resized.width() - BORDER_MARGIN_PX ||
-            it.y >= resized.height() - BORDER_MARGIN_PX
-        }
-        if (touchesBorder) continue
+            val sorted = sortPoints(points)
+            val touchesBorder = sorted.any {
+                it.x <= borderMarginPx ||
+                it.y <= borderMarginPx ||
+                it.x >= resized.width() - borderMarginPx ||
+                it.y >= resized.height() - borderMarginPx
+            }
+            if (touchesBorder) continue
 
-        val qArea = quadArea(sorted)
-        if (qArea <= 0.0) continue
+            val qArea = quadArea(sorted)
+            if (qArea <= 0.0) continue
 
-        val score = qArea
+            val score = qArea
 
-        if (score > bestScore) {
-            bestScore = score
-            best = sorted
+            if (score > bestScore) {
+                bestScore = score
+                best = sorted
+            }
+        } finally {
+            c2f?.release()
+            approx?.release()
+            c.release()
         }
     }
 
@@ -134,23 +179,30 @@ fun processPicture(frame: Mat, requireTemporalStability: Boolean = false): Corne
     bin.release()
     merged.release()
     closeKernel.release()
+    dilateKernel.release()
+    hierarchy.release()
     clahe.collectGarbage()
 
-    if (best != null) {
-        return if (requireTemporalStability) {
+    val result = if (best != null) {
+        if (requireTemporalStability) {
             // Preview overlay expects points in the same resized coordinate space.
-            Corners(best!!, resized.size())
+            Corners(best!!, resizedSize)
         } else {
             // Capture/crop expects points in original image space.
             val mapped = best!!.map { Point(it.x * invScale, it.y * invScale) }
             Corners(mapped, frame.size())
         }
+    } else {
+        null
     }
+    resized.release()
 
-    // ---------- 5. Nothing valid ----------
-    stableCount = 0
-    lastAccepted = null
-    return null
+    if (result == null) {
+        // ---------- 5. Nothing valid ----------
+        stableCount = 0
+        lastAccepted = null
+    }
+    return result
 }
 
 fun cropPicture(picture: Mat, pts: List<Point>): Mat {

@@ -69,7 +69,7 @@ class ScanPresenter constructor(
     private val autoCaptureEnabled: Boolean =
         initialBundle.getBoolean(EdgeDetectionHandler.AUTO_CAPTURE, false)
     private val autoCaptureMinGoodFrames: Int =
-        max(1, initialBundle.getInt(EdgeDetectionHandler.AUTO_CAPTURE_MIN_GOOD_FRAMES, 4))
+        max(1, initialBundle.getInt(EdgeDetectionHandler.AUTO_CAPTURE_MIN_GOOD_FRAMES, 2))
     private val autoCaptureTextNoPassport: String =
         initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_NO_PASSPORT)
             ?: "Place your passport inside the guide"
@@ -84,6 +84,8 @@ class ScanPresenter constructor(
     private var goodFrameStreak = 0
     private var bestPreviewCorners: Corners? = null
     private var bestPreviewScore = 0.0
+    private val autoPreviewJpegQuality = 100
+    private var autoPreviewMissCount = 0
 
     init {
         mSurfaceHolder.addCallback(this)
@@ -309,7 +311,12 @@ class ScanPresenter constructor(
 
     private fun detectAndSaveAutoCapture(pic: Mat) {
         val resizedMat = matrixResizer(pic)
-        val captureCorners = processPicture(resizedMat, requireTemporalStability = false)
+        val captureCorners = processPicture(
+            resizedMat,
+            requireTemporalStability = false,
+            fastMode = false,
+            relaxedValidation = true
+        )
         val previewCorners = mapPreviewCornersToSize(resizedMat.size())
         val selectedCorners = pickBestCorners(captureCorners, previewCorners)
         val hasDetectedPassport = selectedCorners?.corners?.size == 4
@@ -348,8 +355,11 @@ class ScanPresenter constructor(
     }
 
     private fun onAutoCaptureCandidate(corners: Corners) {
+        autoPreviewMissCount = 0
         val insideGuideZone = iView.getPaperRect().isInsideAutoGuide(corners)
         iView.getPaperRect().setAutoGuideDetected(insideGuideZone)
+        val score = cornersScore(corners)
+        Log.i(TAG, "Auto preview candidate: insideGuide=$insideGuideZone score=$score")
         if (!insideGuideZone) {
             iView.setAutoCaptureInstructionText(autoCaptureTextNoPassport)
             resetAutoCaptureTracking()
@@ -357,7 +367,6 @@ class ScanPresenter constructor(
         }
 
         iView.setAutoCaptureInstructionText(autoCaptureTextHoldStill)
-        val score = cornersScore(corners)
         if (score <= 0.0) {
             resetAutoCaptureTracking()
             return
@@ -373,6 +382,10 @@ class ScanPresenter constructor(
     }
 
     private fun onAutoCaptureMiss() {
+        autoPreviewMissCount += 1
+        if (autoPreviewMissCount % 20 == 0) {
+            Log.i(TAG, "Auto preview miss count=$autoPreviewMissCount")
+        }
         iView.getPaperRect().setAutoGuideDetected(false)
         iView.setAutoCaptureInstructionText(autoCaptureTextNoPassport)
         resetAutoCaptureTracking()
@@ -535,9 +548,20 @@ class ScanPresenter constructor(
                             ?: 1920, null
                     )
                     val out = ByteArrayOutputStream()
-                    yuv.compressToJpeg(Rect(0, 0, width ?: 1080, height ?: 1920), 100, out)
+                    val previewWidth = width ?: 1080
+                    val previewHeight = height ?: 1920
+                    val jpegQuality = if (autoCaptureEnabled) autoPreviewJpegQuality else 100
+                    yuv.compressToJpeg(Rect(0, 0, previewWidth, previewHeight), jpegQuality, out)
                     val bytes = out.toByteArray()
-                    val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    val decodeOptions = BitmapFactory.Options().apply {
+                        inPreferredConfig = Bitmap.Config.ARGB_8888
+                    }
+                    val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions)
+                    if (bitmap == null) {
+                        busy = false
+                        Log.e(TAG, "Preview frame decode returned null")
+                        return@subscribe
+                    }
                     val img = Mat()
                     Utils.bitmapToMat(bitmap, img)
                     bitmap.recycle()
@@ -550,7 +574,12 @@ class ScanPresenter constructor(
 
                     Observable.create<Corners> {
                         try {
-                            val corner = processPicture(img, requireTemporalStability = true)
+                            val corner = processPicture(
+                                img,
+                                requireTemporalStability = true,
+                                fastMode = false,
+                                relaxedValidation = autoCaptureEnabled
+                            )
                             if (null != corner && corner.corners.size == 4) {
                                 it.onNext(corner)
                             } else {

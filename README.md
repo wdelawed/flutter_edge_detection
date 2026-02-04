@@ -54,7 +54,7 @@ Future<void> scanWithCamera() async {
       androidCropBlackWhiteTitle: 'Black White',
       androidCropReset: 'Reset',
       androidAutoCapture: true,
-      androidAutoCaptureMinGoodFrames: 4,
+      androidAutoCaptureMinGoodFrames: 2,
       androidAutoCaptureTextNoPassport: 'Place passport inside the frame',
       androidAutoCaptureTextHoldStill: 'Hold still',
       androidAutoCaptureTextCapturing: 'Capturing...',
@@ -134,7 +134,7 @@ Scans an object using the camera with edge detection.
 - `androidCropBlackWhiteTitle` (String, optional): Title for the black/white filter button on Android (default: "Black White")
 - `androidCropReset` (String, optional): Title for the reset button on Android (default: "Reset")
 - `androidAutoCapture` (bool, optional): Enable automatic capture mode on Android (default: `false`)
-- `androidAutoCaptureMinGoodFrames` (int, optional): Number of good preview detections required before capture (default: `4`)
+- `androidAutoCaptureMinGoodFrames` (int, optional): Number of good preview detections required before capture (default: `2`)
 - `androidAutoCaptureTextNoPassport` (String, optional): Auto-capture instruction when no passport is detected (default: `"Place your passport inside the guide"`)
 - `androidAutoCaptureTextHoldStill` (String, optional): Auto-capture instruction when passport is detected (default: `"Hold your position"`)
 - `androidAutoCaptureTextCapturing` (String, optional): Auto-capture instruction while capturing (default: `"Capturing..."`)

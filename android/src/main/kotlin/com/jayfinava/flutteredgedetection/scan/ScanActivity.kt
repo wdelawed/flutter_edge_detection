@@ -30,6 +30,7 @@ import java.io.*
 class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     private lateinit var mPresenter: ScanPresenter
+    private val instructionGapPx = 30f
 
     override fun provideContentViewId(): Int = R.layout.activity_scan
 
@@ -60,6 +61,7 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
             setAutoCaptureInstructionText(
                 initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_NO_PASSPORT) ?: ""
             )
+            positionAutoCaptureInstruction()
         }
 
         findViewById<View>(R.id.shut).setOnClickListener {
@@ -145,6 +147,28 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     override fun setAutoCaptureInstructionText(text: String) {
         findViewById<TextView>(R.id.auto_capture_instruction).text = text
+        positionAutoCaptureInstruction()
+    }
+
+    private fun positionAutoCaptureInstruction() {
+        val instructionView = findViewById<TextView>(R.id.auto_capture_instruction)
+        if (instructionView.visibility != View.VISIBLE) return
+
+        val paperRect = getPaperRect()
+        paperRect.post {
+            instructionView.post {
+                val guideZone = paperRect.getAutoGuideZone()
+                if (guideZone.isEmpty) return@post
+
+                val desiredY = paperRect.y + guideZone.top - instructionView.height - instructionGapPx
+                instructionView.y = desiredY.coerceAtLeast(0f)
+
+                val rootView = findViewById<View>(android.R.id.content)
+                val desiredX = paperRect.x + guideZone.centerX() - instructionView.width / 2f
+                val maxX = (rootView.width - instructionView.width).coerceAtLeast(0).toFloat()
+                instructionView.x = desiredX.coerceIn(0f, maxX)
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

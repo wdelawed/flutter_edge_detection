@@ -38,7 +38,7 @@ class FlutterEdgeDetection {
     String androidCropBlackWhiteTitle = 'Black White',
     String androidCropReset = 'Reset',
     bool androidAutoCapture = false,
-    int androidAutoCaptureMinGoodFrames = 4,
+    int androidAutoCaptureMinGoodFrames = 2,
     String androidAutoCaptureTextNoPassport =
         'Place your passport inside the guide',
     String androidAutoCaptureTextHoldStill = 'Hold your position',

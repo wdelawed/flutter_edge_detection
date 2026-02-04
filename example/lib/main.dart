@@ -137,6 +137,8 @@ class _MyHomePageState extends State<MyHomePage> {
         androidCropBlackWhiteTitle: 'Black White',
         androidCropReset: 'Reset',
         androidAutoCapture: true, 
+        androidAutoCaptureMinGoodFrames:5,
+        
         
       );
 

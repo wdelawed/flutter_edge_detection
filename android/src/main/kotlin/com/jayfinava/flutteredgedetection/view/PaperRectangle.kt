@@ -26,6 +26,8 @@ class PaperRectangle : View {
     private val circlePaint = Paint()
     private val autoGuidePaint = Paint()
     private val autoGuideDimPaint = Paint()
+    private val autoGuideDetailPaint = Paint()
+    private val autoGuideMrzLinePaint = Paint()
     private var ratioX: Double = 1.0
     private var ratioY: Double = 1.0
     private var tl: Point = Point()
@@ -64,6 +66,16 @@ class PaperRectangle : View {
 
         autoGuideDimPaint.color = Color.argb(110, 0, 0, 0)
         autoGuideDimPaint.style = Paint.Style.FILL
+
+        autoGuideDetailPaint.isAntiAlias = true
+        autoGuideDetailPaint.style = Paint.Style.STROKE
+        autoGuideDetailPaint.strokeWidth = 3f
+        autoGuideDetailPaint.pathEffect = DashPathEffect(floatArrayOf(14f, 10f), 0f)
+
+        autoGuideMrzLinePaint.isAntiAlias = true
+        autoGuideMrzLinePaint.style = Paint.Style.STROKE
+        autoGuideMrzLinePaint.strokeWidth = 2f
+        autoGuideMrzLinePaint.pathEffect = DashPathEffect(floatArrayOf(8f, 8f), 0f)
     }
 
     fun setAutoGuideMode(enabled: Boolean) {
@@ -81,6 +93,8 @@ class PaperRectangle : View {
         autoGuideDetected = detected
         invalidate()
     }
+
+    fun getAutoGuideZone(): RectF = RectF(autoGuideZone)
 
     fun isInsideAutoGuide(corners: Corners): Boolean {
         if (!autoGuideMode || autoGuideZone.isEmpty || measuredWidth == 0 || measuredHeight == 0) {
@@ -103,7 +117,6 @@ class PaperRectangle : View {
             mappedPoints.maxOf { it.x },
             mappedPoints.maxOf { it.y }
         )
-        if (bounds.width() < bounds.height() * 1.1f) return false
         val boundsArea = bounds.width() * bounds.height()
         if (boundsArea <= 0f) return false
 
@@ -111,13 +124,16 @@ class PaperRectangle : View {
             mappedPoints.map { it.x }.average().toFloat(),
             mappedPoints.map { it.y }.average().toFloat()
         )
-        if (!zone.contains(center.x, center.y)) return false
+        val centerSlackX = zone.width() * 0.12f
+        val centerSlackY = zone.height() * 0.12f
+        val centerBounds = RectF(zone).apply { inset(-centerSlackX, -centerSlackY) }
+        if (!centerBounds.contains(center.x, center.y)) return false
 
         val intersection = RectF()
         if (!intersection.setIntersect(zone, bounds)) return false
         val overlapRatio = (intersection.width() * intersection.height()) / boundsArea
 
-        return overlapRatio >= 0.55f
+        return overlapRatio >= 0.18f
     }
 
     fun onCornersDetected(corners: Corners) {
@@ -219,12 +235,53 @@ class PaperRectangle : View {
         }
         canvas.drawPath(outer, autoGuideDimPaint)
 
-        autoGuidePaint.color = if (autoGuideDetected) {
+        val guideColor = if (autoGuideDetected) {
             Color.parseColor("#2ECC71")
         } else {
             Color.parseColor("#FF4D4F")
         }
+        autoGuidePaint.color = guideColor
         canvas.drawRoundRect(autoGuideZone, 22f, 22f, autoGuidePaint)
+        drawPassportTemplate(canvas, guideColor)
+    }
+
+    private fun drawPassportTemplate(canvas: Canvas, guideColor: Int) {
+        val zone = autoGuideZone
+        val offsetY = 8f
+        val inner = RectF(
+            zone.left + zone.width() * 0.05f,
+            zone.top + zone.height() * 0.08f,
+            zone.right - zone.width() * 0.05f,
+            zone.bottom - zone.height() * 0.08f
+        )
+
+        val photoRect = RectF(
+            inner.left + inner.width() * 0.04f,
+            inner.top + inner.height() * 0.10f + offsetY,
+            inner.left + inner.width() * 0.30f,
+            inner.top + inner.height() * 0.68f + offsetY
+        )
+
+        val mrzRect = RectF(
+            inner.left + inner.width() * 0.03f,
+            inner.bottom - inner.height() * 0.28f + offsetY,
+            inner.right - inner.width() * 0.03f,
+            inner.bottom - inner.height() * 0.02f + offsetY
+        )
+
+        autoGuideDetailPaint.color = colorWithAlpha(guideColor, 220)
+        autoGuideMrzLinePaint.color = colorWithAlpha(guideColor, 185)
+
+        canvas.drawRoundRect(photoRect, 10f, 10f, autoGuideDetailPaint)
+
+        val firstLineY = mrzRect.top + mrzRect.height() * 0.35f
+        val secondLineY = mrzRect.top + mrzRect.height() * 0.70f
+        canvas.drawLine(mrzRect.left, firstLineY, mrzRect.right, firstLineY, autoGuideMrzLinePaint)
+        canvas.drawLine(mrzRect.left, secondLineY, mrzRect.right, secondLineY, autoGuideMrzLinePaint)
+    }
+
+    private fun colorWithAlpha(color: Int, alpha: Int): Int {
+        return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {

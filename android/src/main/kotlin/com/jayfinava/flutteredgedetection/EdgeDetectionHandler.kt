@@ -39,7 +39,7 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         const val AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS = "auto_capture_preview_button_border_radius"
         const val REQUEST_CODE = 1001
         const val ERROR_CODE = 1002
-        private const val DEFAULT_AUTO_CAPTURE_MIN_GOOD_FRAMES = 4
+        private const val DEFAULT_AUTO_CAPTURE_MIN_GOOD_FRAMES = 2
         private const val DEFAULT_AUTO_CAPTURE_TEXT_NO_PASSPORT = "Place your passport inside the guide"
         private const val DEFAULT_AUTO_CAPTURE_TEXT_HOLD_STILL = "Hold your position"
         private const val DEFAULT_AUTO_CAPTURE_TEXT_CAPTURING = "Capturing..."
