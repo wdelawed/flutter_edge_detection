@@ -44,6 +44,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import android.util.Size as SizeB
@@ -211,17 +212,6 @@ class ScanPresenter constructor(
         val cameraCharacteristics =
             cameraManager.getCameraCharacteristics(getBackFacingCameraId()!!)
 
-        val size = iView.getCurrentDisplay()?.let {
-            getPreviewOutputSize(
-                it, cameraCharacteristics, SurfaceHolder::class.java
-            )
-        }
-
-        Log.i(TAG, "Selected preview size: ${size?.width}${size?.height}")
-
-        size?.width?.toString()?.let { Log.i(TAG, it) }
-        val param = mCamera?.parameters
-        param?.setPreviewSize(size?.width ?: 1920, size?.height ?: 1080)
         val display = iView.getCurrentDisplay()
         val point = Point()
 
@@ -230,7 +220,26 @@ class ScanPresenter constructor(
         val displayWidth = minOf(point.x, point.y)
         val displayHeight = maxOf(point.x, point.y)
         val displayRatio = displayWidth.div(displayHeight.toFloat())
-        val previewRatio = size?.height?.toFloat()?.div(size.width.toFloat()) ?: displayRatio
+
+        val param = mCamera?.parameters
+        val supportedPreviewSizes = param?.supportedPreviewSizes
+        val fallbackSize = display?.let {
+            getPreviewOutputSize(
+                it, cameraCharacteristics, SurfaceHolder::class.java
+            )
+        }
+        val chosenPreviewSize = supportedPreviewSizes?.let {
+            chooseBestPreviewSize(it, displayRatio)
+        }
+        val previewWidth = chosenPreviewSize?.width ?: fallbackSize?.width ?: 1920
+        val previewHeight = chosenPreviewSize?.height ?: fallbackSize?.height ?: 1080
+
+        Log.i(TAG, "Selected preview size: ${previewWidth}x${previewHeight}")
+        param?.setPreviewSize(previewWidth, previewHeight)
+        mSurfaceHolder.setFixedSize(previewWidth, previewHeight)
+
+        val previewRatio = minOf(previewWidth, previewHeight)
+            .div(maxOf(previewWidth, previewHeight).toFloat())
         val surfaceView = iView.getSurfaceView()
         val (targetWidth, targetHeight) = if (previewRatio <= 0f) {
             displayWidth to displayHeight
@@ -309,6 +318,37 @@ class ScanPresenter constructor(
             copied
         }
     }
+
+    private fun chooseBestPreviewSize(
+        sizes: List<Camera.Size>,
+        targetRatio: Float,
+        maxLong: Int = 1920
+    ): Camera.Size {
+        val normalizedTarget = targetRatio.coerceIn(0.1f, 1.0f)
+        var candidates = sizes.map { size ->
+            val long = max(size.width, size.height)
+            val short = min(size.width, size.height)
+            val ratio = short.toFloat() / long.toFloat()
+            PreviewSizeCandidate(size, ratio, long * short, long)
+        }
+
+        val capped = candidates.filter { it.longEdge <= maxLong }
+        if (capped.isNotEmpty()) {
+            candidates = capped
+        }
+
+        val minDiff = candidates.minOf { abs(it.ratio - normalizedTarget) }
+        val ratioCandidates = candidates.filter { abs(it.ratio - normalizedTarget) <= minDiff + 0.01f }
+
+        return ratioCandidates.maxByOrNull { it.area }?.size ?: sizes.first()
+    }
+
+    private data class PreviewSizeCandidate(
+        val size: Camera.Size,
+        val ratio: Float,
+        val area: Int,
+        val longEdge: Int
+    )
     fun detectEdge(pic: Mat) {
 
         Log.i("height", pic.size().height.toString())
