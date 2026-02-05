@@ -232,16 +232,29 @@ class ScanPresenter constructor(
         val displayRatio = displayWidth.div(displayHeight.toFloat())
         val previewRatio = size?.height?.toFloat()?.div(size.width.toFloat()) ?: displayRatio
         val surfaceView = iView.getSurfaceView()
-        if (displayRatio > previewRatio) {
-            val surfaceParams = surfaceView.layoutParams
-            surfaceParams.height = (displayHeight / displayRatio * previewRatio).toInt()
-            surfaceView.layoutParams = surfaceParams
+        val (targetWidth, targetHeight) = if (previewRatio <= 0f) {
+            displayWidth to displayHeight
+        } else if (displayRatio > previewRatio) {
+            (displayHeight * previewRatio).toInt() to displayHeight
+        } else {
+            displayWidth to (displayWidth / previewRatio).toInt()
         }
+
+        val surfaceParams = surfaceView.layoutParams as? android.widget.RelativeLayout.LayoutParams
+            ?: android.widget.RelativeLayout.LayoutParams(surfaceView.layoutParams)
+        surfaceParams.width = targetWidth
+        surfaceParams.height = targetHeight
+        surfaceParams.addRule(android.widget.RelativeLayout.CENTER_IN_PARENT, android.widget.RelativeLayout.TRUE)
+        surfaceView.layoutParams = surfaceParams
+
         // Keep guide overlay aligned with the visible camera preview area.
-        val guideParams = iView.getPaperRect().layoutParams
-        guideParams.width = surfaceView.layoutParams.width
-        guideParams.height = surfaceView.layoutParams.height
-        iView.getPaperRect().layoutParams = guideParams
+        val guideView = iView.getPaperRect()
+        val guideParams = guideView.layoutParams as? android.widget.RelativeLayout.LayoutParams
+            ?: android.widget.RelativeLayout.LayoutParams(guideView.layoutParams)
+        guideParams.width = targetWidth
+        guideParams.height = targetHeight
+        guideParams.addRule(android.widget.RelativeLayout.CENTER_IN_PARENT, android.widget.RelativeLayout.TRUE)
+        guideView.layoutParams = guideParams
 
         val supportPicSize = mCamera?.parameters?.supportedPictureSizes
         supportPicSize?.sortByDescending { it.width.times(it.height) }
