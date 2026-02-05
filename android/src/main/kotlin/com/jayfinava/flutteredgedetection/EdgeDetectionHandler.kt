@@ -37,6 +37,30 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         const val AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING = "auto_capture_preview_button_vertical_padding"
         const val AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR = "auto_capture_preview_button_background_color"
         const val AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS = "auto_capture_preview_button_border_radius"
+        const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_COLOR =
+            "auto_capture_preview_retake_button_text_color"
+        const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_SIZE =
+            "auto_capture_preview_retake_button_text_size"
+        const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_HORIZONTAL_PADDING =
+            "auto_capture_preview_retake_button_horizontal_padding"
+        const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_VERTICAL_PADDING =
+            "auto_capture_preview_retake_button_vertical_padding"
+        const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BACKGROUND_COLOR =
+            "auto_capture_preview_retake_button_background_color"
+        const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BORDER_RADIUS =
+            "auto_capture_preview_retake_button_border_radius"
+        const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_COLOR =
+            "auto_capture_preview_next_button_text_color"
+        const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_SIZE =
+            "auto_capture_preview_next_button_text_size"
+        const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_HORIZONTAL_PADDING =
+            "auto_capture_preview_next_button_horizontal_padding"
+        const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_VERTICAL_PADDING =
+            "auto_capture_preview_next_button_vertical_padding"
+        const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_BACKGROUND_COLOR =
+            "auto_capture_preview_next_button_background_color"
+        const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_BORDER_RADIUS =
+            "auto_capture_preview_next_button_border_radius"
         const val REQUEST_CODE = 1001
         const val ERROR_CODE = 1002
         private const val DEFAULT_AUTO_CAPTURE_MIN_GOOD_FRAMES = 2
@@ -126,6 +150,25 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
 
         val initialIntent = Intent(getActivity()?.applicationContext, ScanActivity::class.java)
 
+        val previewButtonTextColor =
+            call.argument<String>(AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR)
+                ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR
+        val previewButtonTextSize =
+            call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE)?.toDouble()
+                ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE
+        val previewButtonHorizontalPadding =
+            call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING)?.toDouble()
+                ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING
+        val previewButtonVerticalPadding =
+            call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING)?.toDouble()
+                ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING
+        val previewButtonBackgroundColor =
+            call.argument<String>(AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR)
+                ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR
+        val previewButtonBorderRadius =
+            call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS)?.toDouble()
+                ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS
+
         val bundle = Bundle().apply {
             putString(SAVE_TO, call.argument<String>(SAVE_TO))
             putString(SCAN_TITLE, call.argument<String>(SCAN_TITLE))
@@ -159,33 +202,87 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
             )
             putString(
                 AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR,
-                call.argument<String>(AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR)
-                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR
+                previewButtonTextColor
             )
             putDouble(
                 AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE,
-                call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE)?.toDouble()
-                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE
+                previewButtonTextSize
             )
             putDouble(
                 AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING,
-                call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING)?.toDouble()
-                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING
+                previewButtonHorizontalPadding
             )
             putDouble(
                 AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING,
-                call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING)?.toDouble()
-                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING
+                previewButtonVerticalPadding
             )
             putString(
                 AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR,
-                call.argument<String>(AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR)
-                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR
+                previewButtonBackgroundColor
             )
             putDouble(
                 AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS,
-                call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS)?.toDouble()
-                    ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS
+                previewButtonBorderRadius
+            )
+            putString(
+                AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_COLOR,
+                call.argument<String>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_COLOR)
+                    ?: previewButtonTextColor
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_SIZE,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_SIZE)?.toDouble()
+                    ?: previewButtonTextSize
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_HORIZONTAL_PADDING,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_HORIZONTAL_PADDING)?.toDouble()
+                    ?: previewButtonHorizontalPadding
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_VERTICAL_PADDING,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_VERTICAL_PADDING)?.toDouble()
+                    ?: previewButtonVerticalPadding
+            )
+            putString(
+                AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BACKGROUND_COLOR,
+                call.argument<String>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BACKGROUND_COLOR)
+                    ?: previewButtonBackgroundColor
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BORDER_RADIUS,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BORDER_RADIUS)?.toDouble()
+                    ?: previewButtonBorderRadius
+            )
+            putString(
+                AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_COLOR,
+                call.argument<String>(AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_COLOR)
+                    ?: previewButtonTextColor
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_SIZE,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_SIZE)?.toDouble()
+                    ?: previewButtonTextSize
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_HORIZONTAL_PADDING,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_HORIZONTAL_PADDING)?.toDouble()
+                    ?: previewButtonHorizontalPadding
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_VERTICAL_PADDING,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_VERTICAL_PADDING)?.toDouble()
+                    ?: previewButtonVerticalPadding
+            )
+            putString(
+                AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_BACKGROUND_COLOR,
+                call.argument<String>(AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_BACKGROUND_COLOR)
+                    ?: previewButtonBackgroundColor
+            )
+            putDouble(
+                AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_BORDER_RADIUS,
+                call.argument<Number>(AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_BORDER_RADIUS)?.toDouble()
+                    ?: previewButtonBorderRadius
             )
         }
 

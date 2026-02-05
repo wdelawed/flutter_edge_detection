@@ -28,6 +28,18 @@ class FlutterEdgeDetection {
   /// [androidAutoCapturePreviewButtonVerticalPadding] controls preview CTA button vertical padding in dp.
   /// [androidAutoCapturePreviewButtonBackgroundColor] controls preview CTA button background color (hex).
   /// [androidAutoCapturePreviewButtonBorderRadius] controls preview CTA button corner radius in dp.
+  /// [androidAutoCapturePreviewRetakeButtonTextColor] overrides Retake button text color.
+  /// [androidAutoCapturePreviewRetakeButtonTextSize] overrides Retake button text size in sp.
+  /// [androidAutoCapturePreviewRetakeButtonHorizontalPadding] overrides Retake button horizontal padding in dp.
+  /// [androidAutoCapturePreviewRetakeButtonVerticalPadding] overrides Retake button vertical padding in dp.
+  /// [androidAutoCapturePreviewRetakeButtonBackgroundColor] overrides Retake button background color (hex).
+  /// [androidAutoCapturePreviewRetakeButtonBorderRadius] overrides Retake button corner radius in dp.
+  /// [androidAutoCapturePreviewNextButtonTextColor] overrides Next button text color.
+  /// [androidAutoCapturePreviewNextButtonTextSize] overrides Next button text size in sp.
+  /// [androidAutoCapturePreviewNextButtonHorizontalPadding] overrides Next button horizontal padding in dp.
+  /// [androidAutoCapturePreviewNextButtonVerticalPadding] overrides Next button vertical padding in dp.
+  /// [androidAutoCapturePreviewNextButtonBackgroundColor] overrides Next button background color (hex).
+  /// [androidAutoCapturePreviewNextButtonBorderRadius] overrides Next button corner radius in dp.
   ///
   /// Returns `true` if the operation was successful, `false` otherwise.
   static Future<bool> detectEdge(
@@ -49,6 +61,18 @@ class FlutterEdgeDetection {
     double androidAutoCapturePreviewButtonVerticalPadding = 10.0,
     String androidAutoCapturePreviewButtonBackgroundColor = '#73000000',
     double androidAutoCapturePreviewButtonBorderRadius = 12.0,
+    String? androidAutoCapturePreviewRetakeButtonTextColor,
+    double? androidAutoCapturePreviewRetakeButtonTextSize,
+    double? androidAutoCapturePreviewRetakeButtonHorizontalPadding,
+    double? androidAutoCapturePreviewRetakeButtonVerticalPadding,
+    String? androidAutoCapturePreviewRetakeButtonBackgroundColor,
+    double? androidAutoCapturePreviewRetakeButtonBorderRadius,
+    String? androidAutoCapturePreviewNextButtonTextColor,
+    double? androidAutoCapturePreviewNextButtonTextSize,
+    double? androidAutoCapturePreviewNextButtonHorizontalPadding,
+    double? androidAutoCapturePreviewNextButtonVerticalPadding,
+    String? androidAutoCapturePreviewNextButtonBackgroundColor,
+    double? androidAutoCapturePreviewNextButtonBorderRadius,
   }) async {
     try {
       final bool? result = await _channel.invokeMethod('edge_detect', {
@@ -75,6 +99,30 @@ class FlutterEdgeDetection {
             androidAutoCapturePreviewButtonBackgroundColor,
         'auto_capture_preview_button_border_radius':
             androidAutoCapturePreviewButtonBorderRadius,
+        'auto_capture_preview_retake_button_text_color':
+            androidAutoCapturePreviewRetakeButtonTextColor,
+        'auto_capture_preview_retake_button_text_size':
+            androidAutoCapturePreviewRetakeButtonTextSize,
+        'auto_capture_preview_retake_button_horizontal_padding':
+            androidAutoCapturePreviewRetakeButtonHorizontalPadding,
+        'auto_capture_preview_retake_button_vertical_padding':
+            androidAutoCapturePreviewRetakeButtonVerticalPadding,
+        'auto_capture_preview_retake_button_background_color':
+            androidAutoCapturePreviewRetakeButtonBackgroundColor,
+        'auto_capture_preview_retake_button_border_radius':
+            androidAutoCapturePreviewRetakeButtonBorderRadius,
+        'auto_capture_preview_next_button_text_color':
+            androidAutoCapturePreviewNextButtonTextColor,
+        'auto_capture_preview_next_button_text_size':
+            androidAutoCapturePreviewNextButtonTextSize,
+        'auto_capture_preview_next_button_horizontal_padding':
+            androidAutoCapturePreviewNextButtonHorizontalPadding,
+        'auto_capture_preview_next_button_vertical_padding':
+            androidAutoCapturePreviewNextButtonVerticalPadding,
+        'auto_capture_preview_next_button_background_color':
+            androidAutoCapturePreviewNextButtonBackgroundColor,
+        'auto_capture_preview_next_button_border_radius':
+            androidAutoCapturePreviewNextButtonBorderRadius,
       });
       return result ?? false;
     } on PlatformException catch (e) {

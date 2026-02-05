@@ -64,6 +64,10 @@ Future<void> scanWithCamera() async {
       androidAutoCapturePreviewButtonVerticalPadding: 10,
       androidAutoCapturePreviewButtonBackgroundColor: '#73000000',
       androidAutoCapturePreviewButtonBorderRadius: 12,
+      androidAutoCapturePreviewRetakeButtonBackgroundColor: '#66FF3B30',
+      androidAutoCapturePreviewRetakeButtonTextColor: '#FFFFFFFF',
+      androidAutoCapturePreviewNextButtonBackgroundColor: '#6600C853',
+      androidAutoCapturePreviewNextButtonTextColor: '#FFFFFFFF',
     );
 
     if (success) {
@@ -144,6 +148,18 @@ Scans an object using the camera with edge detection.
 - `androidAutoCapturePreviewButtonVerticalPadding` (double, optional): Preview CTA button vertical padding in dp (default: `10`)
 - `androidAutoCapturePreviewButtonBackgroundColor` (String, optional): Preview CTA button background color in hex (default: `"#73000000"`)
 - `androidAutoCapturePreviewButtonBorderRadius` (double, optional): Preview CTA button corner radius in dp (default: `12`)
+- `androidAutoCapturePreviewRetakeButtonTextColor` (String?, optional): Retake button text color override (falls back to `androidAutoCapturePreviewButtonTextColor`)
+- `androidAutoCapturePreviewRetakeButtonTextSize` (double?, optional): Retake button text size override in sp
+- `androidAutoCapturePreviewRetakeButtonHorizontalPadding` (double?, optional): Retake button horizontal padding override in dp
+- `androidAutoCapturePreviewRetakeButtonVerticalPadding` (double?, optional): Retake button vertical padding override in dp
+- `androidAutoCapturePreviewRetakeButtonBackgroundColor` (String?, optional): Retake button background color override
+- `androidAutoCapturePreviewRetakeButtonBorderRadius` (double?, optional): Retake button corner radius override in dp
+- `androidAutoCapturePreviewNextButtonTextColor` (String?, optional): Next button text color override (falls back to `androidAutoCapturePreviewButtonTextColor`)
+- `androidAutoCapturePreviewNextButtonTextSize` (double?, optional): Next button text size override in sp
+- `androidAutoCapturePreviewNextButtonHorizontalPadding` (double?, optional): Next button horizontal padding override in dp
+- `androidAutoCapturePreviewNextButtonVerticalPadding` (double?, optional): Next button vertical padding override in dp
+- `androidAutoCapturePreviewNextButtonBackgroundColor` (String?, optional): Next button background color override
+- `androidAutoCapturePreviewNextButtonBorderRadius` (double?, optional): Next button corner radius override in dp
 
 **Returns:** `Future<bool>` - `true` if successful, `false` if cancelled
 
