@@ -25,6 +25,8 @@ import com.jayfinava.flutteredgedetection.REQUEST_CODE
 import com.jayfinava.flutteredgedetection.SourceManager
 import com.jayfinava.flutteredgedetection.crop.CropActivity
 import com.jayfinava.flutteredgedetection.processor.Corners
+import com.jayfinava.flutteredgedetection.processor.MrzAutoCaptureProcessor
+import com.jayfinava.flutteredgedetection.processor.MrzAutoCaptureResult
 import com.jayfinava.flutteredgedetection.processor.cropPicture
 import com.jayfinava.flutteredgedetection.processor.processPicture
 import io.reactivex.Observable
@@ -47,7 +49,9 @@ import java.util.concurrent.Executors
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import android.util.Size as SizeB
+import org.opencv.core.Rect as CvRect
 import org.opencv.core.Point as CvPoint
 
 class ScanPresenter constructor(
@@ -71,6 +75,10 @@ class ScanPresenter constructor(
         initialBundle.getBoolean(EdgeDetectionHandler.AUTO_CAPTURE, false)
     private val autoCaptureMinGoodFrames: Int =
         max(1, initialBundle.getInt(EdgeDetectionHandler.AUTO_CAPTURE_MIN_GOOD_FRAMES, 2))
+    private val mrzAutoCaptureProcessor = MrzAutoCaptureProcessor(
+        context = context,
+        requiredStableFrames = autoCaptureMinGoodFrames
+    )
     private val autoCaptureTextNoPassport: String =
         initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_NO_PASSPORT)
             ?: "Place your passport inside the guide"
@@ -103,18 +111,31 @@ class ScanPresenter constructor(
     }
 
     fun start() {
+        busy = false
+        pendingAutoCapture = false
+        autoCaptureInFlight = false
+        shutted = true
         if (autoCaptureEnabled) {
             resetAutoCaptureTracking()
             iView.getPaperRect().setAutoGuideDetected(false)
             iView.setAutoCaptureInstructionText(autoCaptureTextNoPassport)
         }
-        mCamera?.startPreview() ?:
-        Log.i(TAG, "mCamera startPreview")
+        val camera = mCamera ?: run {
+            Log.i(TAG, "mCamera is null, cannot start preview")
+            return
+        }
+        camera.setPreviewCallback(this)
+        camera.startPreview()
     }
 
     fun stop() {
-        mCamera?.stopPreview() ?:
-        Log.i(TAG, "mCamera stopPreview")
+        val camera = mCamera ?: run {
+            Log.i(TAG, "mCamera is null, cannot stop preview")
+            return
+        }
+        camera.setPreviewCallback(null)
+        camera.stopPreview()
+        busy = false
     }
 
     val canShut: Boolean get() = shutted
@@ -354,7 +375,12 @@ class ScanPresenter constructor(
         Log.i("height", pic.size().height.toString())
         Log.i("width", pic.size().width.toString())
         val resizedMat = matrixResizer(pic)
-        SourceManager.corners = processPicture(resizedMat, requireTemporalStability = false)
+        SourceManager.corners = processPicture(
+            resizedMat,
+            requireTemporalStability = false,
+            fastMode = false,
+            relaxedValidation = false
+        )
         Imgproc.cvtColor(resizedMat, resizedMat, Imgproc.COLOR_RGB2BGRA)
         SourceManager.pic = resizedMat
         val cropIntent = Intent(context, CropActivity::class.java)
@@ -364,14 +390,7 @@ class ScanPresenter constructor(
 
     private fun detectAndSaveAutoCapture(pic: Mat) {
         val resizedMat = matrixResizer(pic)
-        val captureCorners = processPicture(
-            resizedMat,
-            requireTemporalStability = false,
-            fastMode = false,
-            relaxedValidation = true
-        )
-        val previewCorners = mapPreviewCornersToSize(resizedMat.size())
-        val selectedCorners = pickBestCorners(captureCorners, previewCorners)
+        val selectedCorners = mapPreviewCornersToSize(resizedMat.size())
         val hasDetectedPassport = selectedCorners?.corners?.size == 4
         Log.i(
             TAG,
@@ -448,6 +467,55 @@ class ScanPresenter constructor(
         goodFrameStreak = 0
         bestPreviewScore = 0.0
         bestPreviewCorners = null
+        mrzAutoCaptureProcessor.reset()
+    }
+
+    private fun handleMrzAutoCaptureResult(result: MrzAutoCaptureResult, previewSize: Size) {
+        if (!result.mrzDetected) {
+            onAutoCaptureMiss()
+            return
+        }
+
+        iView.getPaperRect().setAutoGuideDetected(true)
+        iView.setAutoCaptureInstructionText(autoCaptureTextHoldStill)
+
+        result.corners?.let { corners ->
+            bestPreviewCorners = Corners(corners, previewSize)
+        }
+
+        if (result.stableFrameCount >= autoCaptureMinGoodFrames && !autoCaptureInFlight) {
+            triggerPictureCapture(autoCapture = true)
+        }
+    }
+
+    private fun mapGuideRectToPreview(frame: Mat): CvRect? {
+        val guideZone = iView.getPaperRect().getAutoGuideZone()
+        if (guideZone.isEmpty) return null
+
+        val viewWidth = iView.getPaperRect().width
+        val viewHeight = iView.getPaperRect().height
+        if (viewWidth <= 0 || viewHeight <= 0) return null
+
+        val scaleX = frame.width().toFloat() / viewWidth.toFloat()
+        val scaleY = frame.height().toFloat() / viewHeight.toFloat()
+
+        val left = (guideZone.left * scaleX).roundToInt()
+        val top = (guideZone.top * scaleY).roundToInt()
+        val width = (guideZone.width() * scaleX).roundToInt()
+        val height = (guideZone.height() * scaleY).roundToInt()
+
+        if (width <= 0 || height <= 0) return null
+
+        val boundedLeft = left.coerceAtLeast(0)
+        val boundedTop = top.coerceAtLeast(0)
+        val boundedRight = (boundedLeft + width).coerceAtMost(frame.width())
+        val boundedBottom = (boundedTop + height).coerceAtMost(frame.height())
+
+        val boundedWidth = boundedRight - boundedLeft
+        val boundedHeight = boundedBottom - boundedTop
+        if (boundedWidth <= 0 || boundedHeight <= 0) return null
+
+        return CvRect(boundedLeft, boundedTop, boundedWidth, boundedHeight)
     }
 
     private fun cloneCorners(corners: Corners): Corners {
@@ -524,6 +592,17 @@ class ScanPresenter constructor(
             mCamera?.setPreviewCallback(null)
             mCamera?.release()
             mCamera = null
+            val activity = context as? Activity
+            val shouldReleaseOcr = activity?.isFinishing == true || activity?.isDestroyed == true
+            if (shouldReleaseOcr) {
+                mrzAutoCaptureProcessor.release()
+            } else {
+                mrzAutoCaptureProcessor.reset()
+            }
+            busy = false
+            pendingAutoCapture = false
+            autoCaptureInFlight = false
+            shutted = true
         }
     }
 
@@ -625,37 +704,52 @@ class ScanPresenter constructor(
                         e.printStackTrace()
                     }
 
-                    Observable.create<Corners> {
-                        try {
-                            val corner = processPicture(
-                                img,
-                                requireTemporalStability = true,
-                                fastMode = false,
-                                relaxedValidation = autoCaptureEnabled
-                            )
-                            if (null != corner && corner.corners.size == 4) {
-                                it.onNext(corner)
-                            } else {
-                                it.onError(Throwable("paper not detected"))
+                    if (autoCaptureEnabled) {
+                        Observable.create<Pair<MrzAutoCaptureResult, Size>> {
+                            try {
+                                val guideRect = mapGuideRectToPreview(img)
+                                val result = if (guideRect == null) {
+                                    MrzAutoCaptureResult(false, 0, null)
+                                } else {
+                                    mrzAutoCaptureProcessor.process(img, guideRect)
+                                }
+                                val previewSize = Size(img.width().toDouble(), img.height().toDouble())
+                                it.onNext(result to previewSize)
+                            } finally {
+                                busy = false
+                                img.release()
                             }
-                        } finally {
-                            busy = false
-                            img.release()
-                        }
-                    }.observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({
-                            if (autoCaptureEnabled) {
-                                onAutoCaptureCandidate(it)
-                            } else {
-                                iView.getPaperRect().onCornersDetected(it)
-                            }
-                        }, {
-                            if (autoCaptureEnabled) {
+                        }.observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({ (result, previewSize) ->
+                                handleMrzAutoCaptureResult(result, previewSize)
+                            }, {
                                 onAutoCaptureMiss()
-                            } else {
-                                iView.getPaperRect().onCornersNotDetected()
+                            })
+                    } else {
+                        Observable.create<Corners> {
+                            try {
+                                val corner = processPicture(
+                                    img,
+                                    requireTemporalStability = true,
+                                    fastMode = false,
+                                    relaxedValidation = false
+                                )
+                                if (null != corner && corner.corners.size == 4) {
+                                    it.onNext(corner)
+                                } else {
+                                    it.onError(Throwable("paper not detected"))
+                                }
+                            } finally {
+                                busy = false
+                                img.release()
                             }
-                        })
+                        }.observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({
+                                iView.getPaperRect().onCornersDetected(it)
+                            }, {
+                                iView.getPaperRect().onCornersNotDetected()
+                            })
+                    }
                 }, { throwable ->
                     busy = false
                     Log.e(TAG, throwable.message ?: "Preview processing failed")
