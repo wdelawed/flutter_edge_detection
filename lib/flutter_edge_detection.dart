@@ -13,23 +13,21 @@ class FlutterEdgeDetection {
   ///
   /// [saveTo] is the file path where the cropped image will be saved.
   /// [canUseGallery] determines if the user can switch to gallery mode.
-  /// [androidScanTitle] is the title for the scan screen on Android.
-  /// [androidCropTitle] is the title for the crop button on Android.
-  /// [androidCropBlackWhiteTitle] is the title for the black/white filter button on Android.
-  /// [androidCropReset] is the title for the reset button on Android.
+  /// [androidScanTitle] is the title for the scan screen on Android. If null, localized native default is used.
+  /// [androidCropTitle] is the title for the crop button on Android. If null, localized native default is used.
+  /// [androidCropBlackWhiteTitle] is the title for the black/white filter button on Android. If null, localized native default is used.
+  /// [androidCropReset] is the title for the reset button on Android. If null, localized native default is used.
   /// [androidAutoCapture] enables automatic capture mode on Android.
   /// [androidAutoCaptureMinGoodFrames] controls how many good preview frames are required before auto capture.
-  /// [androidAutoCaptureTextNoPassport] is shown when no passport is detected in the overlay.
-  /// [androidAutoCaptureTextHoldStill] is shown when passport is detected and user should hold still.
-  /// [androidAutoCaptureTextCapturing] is shown while image is being captured.
+  /// [androidAutoCaptureTextNoPassport] is shown when no passport is detected in the overlay. If null, localized native default is used.
+  /// [androidAutoCaptureTextHoldStill] is shown when passport is detected and user should hold still. If null, localized native default is used.
+  /// [androidAutoCaptureTextCapturing] is shown while image is being captured. If null, localized native default is used.
   /// [androidAutoCapturePreviewButtonTextColor] controls preview CTA button text color (hex, e.g. `#FFFFFF`).
   /// [androidAutoCapturePreviewButtonTextSize] controls preview CTA button text size in sp.
   /// [androidAutoCapturePreviewButtonHorizontalPadding] controls preview CTA button horizontal padding in dp.
   /// [androidAutoCapturePreviewButtonVerticalPadding] controls preview CTA button vertical padding in dp.
   /// [androidAutoCapturePreviewButtonBackgroundColor] controls preview CTA button background color (hex).
   /// [androidAutoCapturePreviewButtonBorderRadius] controls preview CTA button corner radius in dp.
-  /// [androidAutoCapturePreviewRetakeButtonText] overrides Retake/Retry button label.
-  /// [androidAutoCapturePreviewNextButtonText] overrides Next button label.
   /// [androidAutoCapturePreviewRetakeButtonTextColor] overrides Retake button text color.
   /// [androidAutoCapturePreviewRetakeButtonTextSize] overrides Retake button text size in sp.
   /// [androidAutoCapturePreviewRetakeButtonHorizontalPadding] overrides Retake button horizontal padding in dp.
@@ -47,24 +45,21 @@ class FlutterEdgeDetection {
   static Future<bool> detectEdge(
     String saveTo, {
     bool canUseGallery = true,
-    String androidScanTitle = 'Scanning',
-    String androidCropTitle = 'Crop',
-    String androidCropBlackWhiteTitle = 'Black White',
-    String androidCropReset = 'Reset',
+    String? androidScanTitle,
+    String? androidCropTitle,
+    String? androidCropBlackWhiteTitle,
+    String? androidCropReset,
     bool androidAutoCapture = false,
     int androidAutoCaptureMinGoodFrames = 2,
-    String androidAutoCaptureTextNoPassport =
-        'Place your passport inside the guide',
-    String androidAutoCaptureTextHoldStill = 'Hold your position',
-    String androidAutoCaptureTextCapturing = 'Capturing...',
+    String? androidAutoCaptureTextNoPassport,
+    String? androidAutoCaptureTextHoldStill,
+    String? androidAutoCaptureTextCapturing,
     String androidAutoCapturePreviewButtonTextColor = '#FFFFFFFF',
     double androidAutoCapturePreviewButtonTextSize = 16.0,
     double androidAutoCapturePreviewButtonHorizontalPadding = 16.0,
     double androidAutoCapturePreviewButtonVerticalPadding = 10.0,
     String androidAutoCapturePreviewButtonBackgroundColor = '#73000000',
     double androidAutoCapturePreviewButtonBorderRadius = 12.0,
-    String? androidAutoCapturePreviewRetakeButtonText,
-    String? androidAutoCapturePreviewNextButtonText,
     String? androidAutoCapturePreviewRetakeButtonTextColor,
     double? androidAutoCapturePreviewRetakeButtonTextSize,
     double? androidAutoCapturePreviewRetakeButtonHorizontalPadding,
@@ -103,10 +98,6 @@ class FlutterEdgeDetection {
             androidAutoCapturePreviewButtonBackgroundColor,
         'auto_capture_preview_button_border_radius':
             androidAutoCapturePreviewButtonBorderRadius,
-        'auto_capture_preview_retake_button_text':
-            androidAutoCapturePreviewRetakeButtonText,
-        'auto_capture_preview_next_button_text':
-            androidAutoCapturePreviewNextButtonText,
         'auto_capture_preview_retake_button_text_color':
             androidAutoCapturePreviewRetakeButtonTextColor,
         'auto_capture_preview_retake_button_text_size':
@@ -145,16 +136,16 @@ class FlutterEdgeDetection {
   /// Call this method to scan the object edge from a gallery image.
   ///
   /// [saveTo] is the file path where the cropped image will be saved.
-  /// [androidCropTitle] is the title for the crop button on Android.
-  /// [androidCropBlackWhiteTitle] is the title for the black/white filter button on Android.
-  /// [androidCropReset] is the title for the reset button on Android.
+  /// [androidCropTitle] is the title for the crop button on Android. If null, localized native default is used.
+  /// [androidCropBlackWhiteTitle] is the title for the black/white filter button on Android. If null, localized native default is used.
+  /// [androidCropReset] is the title for the reset button on Android. If null, localized native default is used.
   ///
   /// Returns `true` if the operation was successful, `false` otherwise.
   static Future<bool> detectEdgeFromGallery(
     String saveTo, {
-    String androidCropTitle = 'Crop',
-    String androidCropBlackWhiteTitle = 'Black White',
-    String androidCropReset = 'Reset',
+    String? androidCropTitle,
+    String? androidCropBlackWhiteTitle,
+    String? androidCropReset,
   }) async {
     try {
       final bool? result = await _channel.invokeMethod('edge_detect_gallery', {

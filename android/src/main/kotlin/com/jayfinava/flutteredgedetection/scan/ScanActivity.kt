@@ -59,7 +59,9 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
             if (autoCaptureEnabled) View.GONE else View.VISIBLE
         if (autoCaptureEnabled) {
             setAutoCaptureInstructionText(
-                initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_NO_PASSPORT) ?: ""
+                initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_NO_PASSPORT)
+                    ?.takeIf { it.isNotBlank() }
+                    ?: getString(R.string.auto_capture_text_no_passport)
             )
             positionAutoCaptureInstruction()
         }
@@ -81,7 +83,9 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         }
 
         if(!initialBundle.containsKey(EdgeDetectionHandler.FROM_GALLERY)){
-            this.title = initialBundle.getString(EdgeDetectionHandler.SCAN_TITLE, "") as String
+            this.title = initialBundle.getString(EdgeDetectionHandler.SCAN_TITLE)
+                ?.takeIf { it.isNotBlank() }
+                ?: getString(R.string.scan)
         }
 
         findViewById<View>(R.id.gallery).visibility =

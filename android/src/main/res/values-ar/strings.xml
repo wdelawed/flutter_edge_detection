@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">اكتشاف الحواف</string>
+    <string name="camera_grant">يرجى منح إذن الكاميرا!</string>
+    <string name="press_again_logout">اضغط رجوع مرة أخرى.</string>
+    <string name="crop">قص</string>
+    <string name="save">حفظ</string>
+    <string name="export">تصدير</string>
+    <string name="delete">حذف</string>
+    <string name="enhance">تحسين</string>
+    <string name="black">أبيض وأسود</string>
+    <string name="rotate">تدوير</string>
+    <string name="reset">إعادة تعيين</string>
+    <string name="scan">جاري المسح</string>
+    <string name="preview">معاينة</string>
+    <string name="retake">إعادة المحاولة</string>
+    <string name="next">التالي</string>
+    <string name="done">تم</string>
+    <string name="auto_capture_text_no_passport">ضع جواز السفر داخل الإطار الإرشادي</string>
+    <string name="auto_capture_text_hold_still">حافظ على ثباتك</string>
+    <string name="auto_capture_text_capturing">جارٍ الالتقاط...</string>
+    <string name="camera_open_error">لا يمكن فتح الكاميرا. يرجى منح إذن الكاميرا.</string>
+    <string name="auto_capture_failed">فشل الالتقاط التلقائي</string>
+</resources>

@@ -49,23 +49,14 @@ Future<void> scanWithCamera() async {
     final success = await FlutterEdgeDetection.detectEdge(
       imagePath,
       canUseGallery: true,
-      androidScanTitle: 'Scanning',
-      androidCropTitle: 'Crop',
-      androidCropBlackWhiteTitle: 'Black White',
-      androidCropReset: 'Reset',
       androidAutoCapture: true,
       androidAutoCaptureMinGoodFrames: 2,
-      androidAutoCaptureTextNoPassport: 'Place passport inside the frame',
-      androidAutoCaptureTextHoldStill: 'Hold still',
-      androidAutoCaptureTextCapturing: 'Capturing...',
       androidAutoCapturePreviewButtonTextColor: '#FFFFFFFF',
       androidAutoCapturePreviewButtonTextSize: 16,
       androidAutoCapturePreviewButtonHorizontalPadding: 16,
       androidAutoCapturePreviewButtonVerticalPadding: 10,
       androidAutoCapturePreviewButtonBackgroundColor: '#73000000',
       androidAutoCapturePreviewButtonBorderRadius: 12,
-      androidAutoCapturePreviewRetakeButtonText: 'Retry',
-      androidAutoCapturePreviewNextButtonText: 'Continue',
       androidAutoCapturePreviewRetakeButtonBackgroundColor: '#66FF3B30',
       androidAutoCapturePreviewRetakeButtonTextColor: '#FFFFFFFF',
       androidAutoCapturePreviewNextButtonBackgroundColor: '#6600C853',
@@ -93,9 +84,6 @@ Future<void> scanFromGallery() async {
 
     final success = await FlutterEdgeDetection.detectEdgeFromGallery(
       imagePath,
-      androidCropTitle: 'Crop',
-      androidCropBlackWhiteTitle: 'Black White',
-      androidCropReset: 'Reset',
     );
 
     if (success) {
@@ -135,23 +123,21 @@ Scans an object using the camera with edge detection.
 
 - `saveTo` (String): The file path where the cropped image will be saved
 - `canUseGallery` (bool, optional): Whether to allow switching to gallery mode (default: true)
-- `androidScanTitle` (String, optional): Title for the scan screen on Android (default: "Scanning")
-- `androidCropTitle` (String, optional): Title for the crop button on Android (default: "Crop")
-- `androidCropBlackWhiteTitle` (String, optional): Title for the black/white filter button on Android (default: "Black White")
-- `androidCropReset` (String, optional): Title for the reset button on Android (default: "Reset")
+- `androidScanTitle` (String?, optional): Title for the scan screen on Android (default: localized native string)
+- `androidCropTitle` (String?, optional): Title for the crop button on Android (default: localized native string)
+- `androidCropBlackWhiteTitle` (String?, optional): Title for the black/white filter button on Android (default: localized native string)
+- `androidCropReset` (String?, optional): Title for the reset button on Android (default: localized native string)
 - `androidAutoCapture` (bool, optional): Enable automatic capture mode on Android (default: `false`)
 - `androidAutoCaptureMinGoodFrames` (int, optional): Number of good preview detections required before capture (default: `2`)
-- `androidAutoCaptureTextNoPassport` (String, optional): Auto-capture instruction when no passport is detected (default: `"Place your passport inside the guide"`)
-- `androidAutoCaptureTextHoldStill` (String, optional): Auto-capture instruction when passport is detected (default: `"Hold your position"`)
-- `androidAutoCaptureTextCapturing` (String, optional): Auto-capture instruction while capturing (default: `"Capturing..."`)
+- `androidAutoCaptureTextNoPassport` (String?, optional): Auto-capture instruction when no passport is detected (default: localized native string)
+- `androidAutoCaptureTextHoldStill` (String?, optional): Auto-capture instruction when passport is detected (default: localized native string)
+- `androidAutoCaptureTextCapturing` (String?, optional): Auto-capture instruction while capturing (default: localized native string)
 - `androidAutoCapturePreviewButtonTextColor` (String, optional): Preview CTA button text color in hex (default: `"#FFFFFFFF"`)
 - `androidAutoCapturePreviewButtonTextSize` (double, optional): Preview CTA button text size in sp (default: `16`)
 - `androidAutoCapturePreviewButtonHorizontalPadding` (double, optional): Preview CTA button horizontal padding in dp (default: `16`)
 - `androidAutoCapturePreviewButtonVerticalPadding` (double, optional): Preview CTA button vertical padding in dp (default: `10`)
 - `androidAutoCapturePreviewButtonBackgroundColor` (String, optional): Preview CTA button background color in hex (default: `"#73000000"`)
 - `androidAutoCapturePreviewButtonBorderRadius` (double, optional): Preview CTA button corner radius in dp (default: `12`)
-- `androidAutoCapturePreviewRetakeButtonText` (String?, optional): Retake/Retry button label override
-- `androidAutoCapturePreviewNextButtonText` (String?, optional): Next button label override
 - `androidAutoCapturePreviewRetakeButtonTextColor` (String?, optional): Retake button text color override (falls back to `androidAutoCapturePreviewButtonTextColor`)
 - `androidAutoCapturePreviewRetakeButtonTextSize` (double?, optional): Retake button text size override in sp
 - `androidAutoCapturePreviewRetakeButtonHorizontalPadding` (double?, optional): Retake button horizontal padding override in dp
@@ -174,9 +160,9 @@ Processes an image from the gallery with edge detection.
 **Parameters:**
 
 - `saveTo` (String): The file path where the cropped image will be saved
-- `androidCropTitle` (String, optional): Title for the crop button on Android (default: "Crop")
-- `androidCropBlackWhiteTitle` (String, optional): Title for the black/white filter button on Android (default: "Black White")
-- `androidCropReset` (String, optional): Title for the reset button on Android (default: "Reset")
+- `androidCropTitle` (String?, optional): Title for the crop button on Android (default: localized native string)
+- `androidCropBlackWhiteTitle` (String?, optional): Title for the black/white filter button on Android (default: localized native string)
+- `androidCropReset` (String?, optional): Title for the reset button on Android (default: localized native string)
 
 **Returns:** `Future<bool>` - `true` if successful, `false` if cancelled
 

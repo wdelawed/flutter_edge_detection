@@ -22,6 +22,7 @@ import android.view.SurfaceHolder
 import android.widget.Toast
 import com.jayfinava.flutteredgedetection.EdgeDetectionHandler
 import com.jayfinava.flutteredgedetection.REQUEST_CODE
+import com.jayfinava.flutteredgedetection.R
 import com.jayfinava.flutteredgedetection.SourceManager
 import com.jayfinava.flutteredgedetection.crop.CropActivity
 import com.jayfinava.flutteredgedetection.processor.Corners
@@ -81,13 +82,13 @@ class ScanPresenter constructor(
     )
     private val autoCaptureTextNoPassport: String =
         initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_NO_PASSPORT)
-            ?: "Place your passport inside the guide"
+            ?: context.getString(R.string.auto_capture_text_no_passport)
     private val autoCaptureTextHoldStill: String =
         initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_HOLD_STILL)
-            ?: "Hold your position"
+            ?: context.getString(R.string.auto_capture_text_hold_still)
     private val autoCaptureTextCapturing: String =
         initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_TEXT_CAPTURING)
-            ?: "Capturing..."
+            ?: context.getString(R.string.auto_capture_text_capturing)
     private var pendingAutoCapture = false
     private var autoCaptureInFlight = false
     private var goodFrameStreak = 0
@@ -225,7 +226,7 @@ class ScanPresenter constructor(
             mCamera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK)
         } catch (e: RuntimeException) {
             e.stackTrace
-            Toast.makeText(context, "cannot open camera, please grant camera", Toast.LENGTH_SHORT)
+            Toast.makeText(context, context.getString(R.string.camera_open_error), Toast.LENGTH_SHORT)
                 .show()
             return
         }
@@ -637,7 +638,9 @@ class ScanPresenter constructor(
                 } catch (e: Exception) {
                     Log.e(TAG, "Capture processing failed", e)
                     if (isAutoCapture) {
-                        finishAutoCaptureWithError(e.message ?: "Auto capture failed")
+                        finishAutoCaptureWithError(
+                            e.message ?: context.getString(R.string.auto_capture_failed)
+                        )
                     }
                 } finally {
                     if (isAutoCapture) {
@@ -651,7 +654,9 @@ class ScanPresenter constructor(
             }, { throwable ->
                 Log.e(TAG, "Picture decode failed", throwable)
                 if (isAutoCapture) {
-                    finishAutoCaptureWithError(throwable.message ?: "Auto capture failed")
+                    finishAutoCaptureWithError(
+                        throwable.message ?: context.getString(R.string.auto_capture_failed)
+                    )
                     resetAutoCaptureTracking()
                 }
                 autoCaptureInFlight = false

@@ -23,6 +23,8 @@ class CropActivity : BaseActivity(), ICropView.Proxy {
     override fun prepare() {
         this.initialBundle = intent.getBundleExtra(EdgeDetectionHandler.INITIAL_BUNDLE) as Bundle
         this.title = initialBundle.getString(EdgeDetectionHandler.CROP_TITLE)
+            ?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.crop)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,9 +62,13 @@ class CropActivity : BaseActivity(), ICropView.Proxy {
         menu.findItem(R.id.rotation_image).isVisible = showMenuItems
 
         menu.findItem(R.id.gray).title =
-            initialBundle.getString(EdgeDetectionHandler.CROP_BLACK_WHITE_TITLE) as String
+            initialBundle.getString(EdgeDetectionHandler.CROP_BLACK_WHITE_TITLE)
+                ?.takeIf { it.isNotBlank() }
+                ?: getString(R.string.black)
         menu.findItem(R.id.reset).title =
-            initialBundle.getString(EdgeDetectionHandler.CROP_RESET_TITLE) as String
+            initialBundle.getString(EdgeDetectionHandler.CROP_RESET_TITLE)
+                ?.takeIf { it.isNotBlank() }
+                ?: getString(R.string.reset)
 
         if (showMenuItems) {
             menu.findItem(R.id.action_label).isVisible = true

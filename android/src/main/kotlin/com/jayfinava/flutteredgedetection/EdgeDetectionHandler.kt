@@ -37,8 +37,6 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         const val AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING = "auto_capture_preview_button_vertical_padding"
         const val AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR = "auto_capture_preview_button_background_color"
         const val AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS = "auto_capture_preview_button_border_radius"
-        const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT =
-            "auto_capture_preview_retake_button_text"
         const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_COLOR =
             "auto_capture_preview_retake_button_text_color"
         const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_SIZE =
@@ -51,8 +49,6 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
             "auto_capture_preview_retake_button_background_color"
         const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BORDER_RADIUS =
             "auto_capture_preview_retake_button_border_radius"
-        const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT =
-            "auto_capture_preview_next_button_text"
         const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_COLOR =
             "auto_capture_preview_next_button_text_color"
         const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_SIZE =
@@ -68,9 +64,6 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         const val REQUEST_CODE = 1001
         const val ERROR_CODE = 1002
         private const val DEFAULT_AUTO_CAPTURE_MIN_GOOD_FRAMES = 2
-        private const val DEFAULT_AUTO_CAPTURE_TEXT_NO_PASSPORT = "Place your passport inside the guide"
-        private const val DEFAULT_AUTO_CAPTURE_TEXT_HOLD_STILL = "Hold your position"
-        private const val DEFAULT_AUTO_CAPTURE_TEXT_CAPTURING = "Capturing..."
         private const val DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR = "#FFFFFFFF"
         private const val DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_SIZE = 16.0
         private const val DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_HORIZONTAL_PADDING = 16.0
@@ -117,18 +110,37 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
                 Activity.RESULT_OK -> {
                     // Check if this is from gallery selection
                     if (data?.data != null && methodCall?.method == "edge_detect_gallery") {
+                        val activity = getActivity() ?: return true
                         // Launch ScanActivity with the selected image
-                        val scanIntent = Intent(getActivity()?.applicationContext, com.jayfinava.flutteredgedetection.scan.ScanActivity::class.java)
+                        val scanIntent = Intent(activity.applicationContext, com.jayfinava.flutteredgedetection.scan.ScanActivity::class.java)
                         val bundle = Bundle().apply {
                             putString(SAVE_TO, methodCall?.argument<String>(SAVE_TO))
-                            putString(CROP_TITLE, methodCall?.argument<String>(CROP_TITLE))
-                            putString(CROP_BLACK_WHITE_TITLE, methodCall?.argument<String>(CROP_BLACK_WHITE_TITLE))
-                            putString(CROP_RESET_TITLE, methodCall?.argument<String>(CROP_RESET_TITLE))
+                            putString(
+                                CROP_TITLE,
+                                resolveTextArg(
+                                    methodCall?.argument<String>(CROP_TITLE),
+                                    activity.getString(R.string.crop)
+                                )
+                            )
+                            putString(
+                                CROP_BLACK_WHITE_TITLE,
+                                resolveTextArg(
+                                    methodCall?.argument<String>(CROP_BLACK_WHITE_TITLE),
+                                    activity.getString(R.string.black)
+                                )
+                            )
+                            putString(
+                                CROP_RESET_TITLE,
+                                resolveTextArg(
+                                    methodCall?.argument<String>(CROP_RESET_TITLE),
+                                    activity.getString(R.string.reset)
+                                )
+                            )
                             putBoolean(FROM_GALLERY, true)
                             putParcelable("SELECTED_IMAGE_URI", data.data)
                         }
                         scanIntent.putExtra(INITIAL_BUNDLE, bundle)
-                        getActivity()?.startActivityForResult(scanIntent, REQUEST_CODE)
+                        activity.startActivityForResult(scanIntent, REQUEST_CODE)
                         return true
                     } else {
                         finishWithSuccess(true)
@@ -152,7 +164,11 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
             return
         }
 
-        val initialIntent = Intent(getActivity()?.applicationContext, ScanActivity::class.java)
+        val activity = getActivity() ?: run {
+            finishWithError("no_activity", "No foreground activity available.")
+            return
+        }
+        val initialIntent = Intent(activity.applicationContext, ScanActivity::class.java)
 
         val previewButtonTextColor =
             call.argument<String>(AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR)
@@ -172,13 +188,32 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         val previewButtonBorderRadius =
             call.argument<Number>(AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS)?.toDouble()
                 ?: DEFAULT_AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS
+        val defaultScanTitle = activity.getString(R.string.scan)
+        val defaultCropTitle = activity.getString(R.string.crop)
+        val defaultBlackWhiteTitle = activity.getString(R.string.black)
+        val defaultResetTitle = activity.getString(R.string.reset)
+        val defaultNoPassportText = activity.getString(R.string.auto_capture_text_no_passport)
+        val defaultHoldStillText = activity.getString(R.string.auto_capture_text_hold_still)
+        val defaultCapturingText = activity.getString(R.string.auto_capture_text_capturing)
 
         val bundle = Bundle().apply {
             putString(SAVE_TO, call.argument<String>(SAVE_TO))
-            putString(SCAN_TITLE, call.argument<String>(SCAN_TITLE))
-            putString(CROP_TITLE, call.argument<String>(CROP_TITLE))
-            putString(CROP_BLACK_WHITE_TITLE, call.argument<String>(CROP_BLACK_WHITE_TITLE))
-            putString(CROP_RESET_TITLE, call.argument<String>(CROP_RESET_TITLE))
+            putString(
+                SCAN_TITLE,
+                resolveTextArg(call.argument<String>(SCAN_TITLE), defaultScanTitle)
+            )
+            putString(
+                CROP_TITLE,
+                resolveTextArg(call.argument<String>(CROP_TITLE), defaultCropTitle)
+            )
+            putString(
+                CROP_BLACK_WHITE_TITLE,
+                resolveTextArg(call.argument<String>(CROP_BLACK_WHITE_TITLE), defaultBlackWhiteTitle)
+            )
+            putString(
+                CROP_RESET_TITLE,
+                resolveTextArg(call.argument<String>(CROP_RESET_TITLE), defaultResetTitle)
+            )
             putBoolean(CAN_USE_GALLERY, call.argument<Boolean>(CAN_USE_GALLERY) ?: true)
             putBoolean(AUTO_CAPTURE, call.argument<Boolean>(AUTO_CAPTURE) ?: false)
             putInt(
@@ -191,18 +226,24 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
             )
             putString(
                 AUTO_CAPTURE_TEXT_NO_PASSPORT,
-                call.argument<String>(AUTO_CAPTURE_TEXT_NO_PASSPORT)
-                    ?: DEFAULT_AUTO_CAPTURE_TEXT_NO_PASSPORT
+                resolveTextArg(
+                    call.argument<String>(AUTO_CAPTURE_TEXT_NO_PASSPORT),
+                    defaultNoPassportText
+                )
             )
             putString(
                 AUTO_CAPTURE_TEXT_HOLD_STILL,
-                call.argument<String>(AUTO_CAPTURE_TEXT_HOLD_STILL)
-                    ?: DEFAULT_AUTO_CAPTURE_TEXT_HOLD_STILL
+                resolveTextArg(
+                    call.argument<String>(AUTO_CAPTURE_TEXT_HOLD_STILL),
+                    defaultHoldStillText
+                )
             )
             putString(
                 AUTO_CAPTURE_TEXT_CAPTURING,
-                call.argument<String>(AUTO_CAPTURE_TEXT_CAPTURING)
-                    ?: DEFAULT_AUTO_CAPTURE_TEXT_CAPTURING
+                resolveTextArg(
+                    call.argument<String>(AUTO_CAPTURE_TEXT_CAPTURING),
+                    defaultCapturingText
+                )
             )
             putString(
                 AUTO_CAPTURE_PREVIEW_BUTTON_TEXT_COLOR,
@@ -227,10 +268,6 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
             putDouble(
                 AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS,
                 previewButtonBorderRadius
-            )
-            putString(
-                AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT,
-                call.argument<String>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT)
             )
             putString(
                 AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_COLOR,
@@ -261,10 +298,6 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
                 AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BORDER_RADIUS,
                 call.argument<Number>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BORDER_RADIUS)?.toDouble()
                     ?: previewButtonBorderRadius
-            )
-            putString(
-                AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT,
-                call.argument<String>(AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT)
             )
             putString(
                 AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_COLOR,
@@ -300,7 +333,7 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
 
         initialIntent.putExtra(INITIAL_BUNDLE, bundle)
 
-        getActivity()?.startActivityForResult(initialIntent, REQUEST_CODE)
+        activity.startActivityForResult(initialIntent, REQUEST_CODE)
     }
 
     private fun openGalleryActivity(call: MethodCall, result: Result) {
@@ -308,23 +341,41 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
             finishWithAlreadyActiveError()
             return
         }
-        
+
+        val activity = getActivity() ?: run {
+            finishWithError("no_activity", "No foreground activity available.")
+            return
+        }
+
+        val defaultCropTitle = activity.getString(R.string.crop)
+        val defaultBlackWhiteTitle = activity.getString(R.string.black)
+        val defaultResetTitle = activity.getString(R.string.reset)
+
         // Store the arguments for later use when gallery image is selected
         val bundle = Bundle().apply {
             putString(SAVE_TO, call.argument<String>(SAVE_TO))
-            putString(CROP_TITLE, call.argument<String>(CROP_TITLE))
-            putString(CROP_BLACK_WHITE_TITLE, call.argument<String>(CROP_BLACK_WHITE_TITLE))
-            putString(CROP_RESET_TITLE, call.argument<String>(CROP_RESET_TITLE))
+            putString(
+                CROP_TITLE,
+                resolveTextArg(call.argument<String>(CROP_TITLE), defaultCropTitle)
+            )
+            putString(
+                CROP_BLACK_WHITE_TITLE,
+                resolveTextArg(call.argument<String>(CROP_BLACK_WHITE_TITLE), defaultBlackWhiteTitle)
+            )
+            putString(
+                CROP_RESET_TITLE,
+                resolveTextArg(call.argument<String>(CROP_RESET_TITLE), defaultResetTitle)
+            )
             putBoolean(FROM_GALLERY, true)
         }
-        
+
         // Store bundle in a temporary location or pass it through intent
         val galleryIntent = Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
             type = "image/*"
             putExtra(INITIAL_BUNDLE, bundle)
         }
-        
-        getActivity()?.startActivityForResult(galleryIntent, REQUEST_CODE)
+
+        activity.startActivityForResult(galleryIntent, REQUEST_CODE)
     }
 
     private fun setPendingMethodCallAndResult(
@@ -351,6 +402,10 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
     private fun finishWithSuccess(res: Boolean) {
         result?.success(res)
         clearMethodCallAndResult()
+    }
+
+    private fun resolveTextArg(rawValue: String?, fallback: String): String {
+        return rawValue?.takeIf { it.isNotBlank() } ?: fallback
     }
 
     private fun clearMethodCallAndResult() {

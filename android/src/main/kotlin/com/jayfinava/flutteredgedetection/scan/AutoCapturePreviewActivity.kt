@@ -58,15 +58,6 @@ class AutoCapturePreviewActivity : BaseActivity() {
         val retakeButton = findViewById<Button>(R.id.button_retake)
         val nextButton = findViewById<Button>(R.id.button_next)
 
-        retakeButton.text = resolveButtonText(
-            initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT),
-            getString(R.string.retake)
-        )
-        nextButton.text = resolveButtonText(
-            initialBundle.getString(EdgeDetectionHandler.AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT),
-            getString(R.string.next)
-        )
-
         applyBottomInsetForActions()
         applyPreviewButtonStyle(retakeButton, PreviewButtonType.RETAKE)
         applyPreviewButtonStyle(nextButton, PreviewButtonType.NEXT)
@@ -157,10 +148,6 @@ class AutoCapturePreviewActivity : BaseActivity() {
         } catch (_: IllegalArgumentException) {
             fallback
         }
-    }
-
-    private fun resolveButtonText(rawText: String?, fallbackText: String): String {
-        return rawText?.takeIf { it.isNotBlank() } ?: fallbackText
     }
 
     private fun applyBottomInsetForActions() {

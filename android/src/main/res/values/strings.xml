@@ -13,7 +13,11 @@
     <string name="scan">Scanning</string>
     <string name="preview">Preview</string>
     <string name="retake">Retake</string>
-
     <string name="next">Next</string>
     <string name="done">Done</string>
+    <string name="auto_capture_text_no_passport">Place your passport inside the guide</string>
+    <string name="auto_capture_text_hold_still">Hold your position</string>
+    <string name="auto_capture_text_capturing">Capturing...</string>
+    <string name="camera_open_error">Cannot open camera. Please grant camera permission.</string>
+    <string name="auto_capture_failed">Auto capture failed</string>
 </resources>

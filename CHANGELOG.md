@@ -2,9 +2,8 @@
 
 ## [Unreleased]
 
-- Add Android auto-capture preview button text overrides:
-  - `androidAutoCapturePreviewRetakeButtonText`
-  - `androidAutoCapturePreviewNextButtonText`
+- Localize Android plugin UI strings for English and Arabic.
+- Use localized native defaults for Android titles/instructions when text parameters are omitted from Flutter.
 
 ## [1.0.2] - 2024-06-19
 
