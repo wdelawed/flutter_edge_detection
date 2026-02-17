@@ -37,6 +37,8 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         const val AUTO_CAPTURE_PREVIEW_BUTTON_VERTICAL_PADDING = "auto_capture_preview_button_vertical_padding"
         const val AUTO_CAPTURE_PREVIEW_BUTTON_BACKGROUND_COLOR = "auto_capture_preview_button_background_color"
         const val AUTO_CAPTURE_PREVIEW_BUTTON_BORDER_RADIUS = "auto_capture_preview_button_border_radius"
+        const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT =
+            "auto_capture_preview_retake_button_text"
         const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_COLOR =
             "auto_capture_preview_retake_button_text_color"
         const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_SIZE =
@@ -49,6 +51,8 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
             "auto_capture_preview_retake_button_background_color"
         const val AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BORDER_RADIUS =
             "auto_capture_preview_retake_button_border_radius"
+        const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT =
+            "auto_capture_preview_next_button_text"
         const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_COLOR =
             "auto_capture_preview_next_button_text_color"
         const val AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_SIZE =
@@ -195,6 +199,8 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
         val defaultNoPassportText = activity.getString(R.string.auto_capture_text_no_passport)
         val defaultHoldStillText = activity.getString(R.string.auto_capture_text_hold_still)
         val defaultCapturingText = activity.getString(R.string.auto_capture_text_capturing)
+        val defaultRetakeText = activity.getString(R.string.retake)
+        val defaultNextText = activity.getString(R.string.next)
 
         val bundle = Bundle().apply {
             putString(SAVE_TO, call.argument<String>(SAVE_TO))
@@ -270,6 +276,13 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
                 previewButtonBorderRadius
             )
             putString(
+                AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT,
+                resolveTextArg(
+                    call.argument<String>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT),
+                    defaultRetakeText
+                )
+            )
+            putString(
                 AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_COLOR,
                 call.argument<String>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_TEXT_COLOR)
                     ?: previewButtonTextColor
@@ -298,6 +311,13 @@ class EdgeDetectionHandler : MethodCallHandler, PluginRegistry.ActivityResultLis
                 AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BORDER_RADIUS,
                 call.argument<Number>(AUTO_CAPTURE_PREVIEW_RETAKE_BUTTON_BORDER_RADIUS)?.toDouble()
                     ?: previewButtonBorderRadius
+            )
+            putString(
+                AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT,
+                resolveTextArg(
+                    call.argument<String>(AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT),
+                    defaultNextText
+                )
             )
             putString(
                 AUTO_CAPTURE_PREVIEW_NEXT_BUTTON_TEXT_COLOR,

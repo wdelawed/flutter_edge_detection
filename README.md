@@ -57,6 +57,8 @@ Future<void> scanWithCamera() async {
       androidAutoCapturePreviewButtonVerticalPadding: 10,
       androidAutoCapturePreviewButtonBackgroundColor: '#73000000',
       androidAutoCapturePreviewButtonBorderRadius: 12,
+      androidAutoCapturePreviewRetakeButtonText: 'Retry',
+      androidAutoCapturePreviewNextButtonText: 'Continue',
       androidAutoCapturePreviewRetakeButtonBackgroundColor: '#66FF3B30',
       androidAutoCapturePreviewRetakeButtonTextColor: '#FFFFFFFF',
       androidAutoCapturePreviewNextButtonBackgroundColor: '#6600C853',
@@ -138,6 +140,8 @@ Scans an object using the camera with edge detection.
 - `androidAutoCapturePreviewButtonVerticalPadding` (double, optional): Preview CTA button vertical padding in dp (default: `10`)
 - `androidAutoCapturePreviewButtonBackgroundColor` (String, optional): Preview CTA button background color in hex (default: `"#73000000"`)
 - `androidAutoCapturePreviewButtonBorderRadius` (double, optional): Preview CTA button corner radius in dp (default: `12`)
+- `androidAutoCapturePreviewRetakeButtonText` (String?, optional): Retake/Retry button label override
+- `androidAutoCapturePreviewNextButtonText` (String?, optional): Next button label override
 - `androidAutoCapturePreviewRetakeButtonTextColor` (String?, optional): Retake button text color override (falls back to `androidAutoCapturePreviewButtonTextColor`)
 - `androidAutoCapturePreviewRetakeButtonTextSize` (double?, optional): Retake button text size override in sp
 - `androidAutoCapturePreviewRetakeButtonHorizontalPadding` (double?, optional): Retake button horizontal padding override in dp

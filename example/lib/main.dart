@@ -140,6 +140,8 @@ class _MyHomePageState extends State<MyHomePage> {
         androidAutoCapturePreviewButtonBorderRadius: 12,
         androidAutoCapturePreviewButtonTextSize: 14,
         androidAutoCapturePreviewButtonVerticalPadding: 8,
+        androidAutoCapturePreviewRetakeButtonText: 'Retry',
+        androidAutoCapturePreviewNextButtonText: 'Next',
         androidAutoCapturePreviewRetakeButtonBackgroundColor: '#66FF3B30',
         androidAutoCapturePreviewRetakeButtonTextColor: '#FFFFFFFF',
         androidAutoCapturePreviewNextButtonBackgroundColor: '#6600C853',

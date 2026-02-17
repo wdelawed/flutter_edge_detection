@@ -4,6 +4,9 @@
 
 - Localize Android plugin UI strings for English and Arabic.
 - Use localized native defaults for Android titles/instructions when text parameters are omitted from Flutter.
+- Keep Android preview text overrides available from Flutter:
+  - `androidAutoCapturePreviewRetakeButtonText`
+  - `androidAutoCapturePreviewNextButtonText`
 
 ## [1.0.2] - 2024-06-19
 
