@@ -28,6 +28,8 @@ class FlutterEdgeDetection {
   /// [androidAutoCapturePreviewButtonVerticalPadding] controls preview CTA button vertical padding in dp.
   /// [androidAutoCapturePreviewButtonBackgroundColor] controls preview CTA button background color (hex).
   /// [androidAutoCapturePreviewButtonBorderRadius] controls preview CTA button corner radius in dp.
+  /// [androidAutoCapturePreviewRetakeButtonText] overrides Retake/Retry button label.
+  /// [androidAutoCapturePreviewNextButtonText] overrides Next button label.
   /// [androidAutoCapturePreviewRetakeButtonTextColor] overrides Retake button text color.
   /// [androidAutoCapturePreviewRetakeButtonTextSize] overrides Retake button text size in sp.
   /// [androidAutoCapturePreviewRetakeButtonHorizontalPadding] overrides Retake button horizontal padding in dp.
@@ -61,6 +63,8 @@ class FlutterEdgeDetection {
     double androidAutoCapturePreviewButtonVerticalPadding = 10.0,
     String androidAutoCapturePreviewButtonBackgroundColor = '#73000000',
     double androidAutoCapturePreviewButtonBorderRadius = 12.0,
+    String? androidAutoCapturePreviewRetakeButtonText,
+    String? androidAutoCapturePreviewNextButtonText,
     String? androidAutoCapturePreviewRetakeButtonTextColor,
     double? androidAutoCapturePreviewRetakeButtonTextSize,
     double? androidAutoCapturePreviewRetakeButtonHorizontalPadding,
@@ -99,6 +103,10 @@ class FlutterEdgeDetection {
             androidAutoCapturePreviewButtonBackgroundColor,
         'auto_capture_preview_button_border_radius':
             androidAutoCapturePreviewButtonBorderRadius,
+        'auto_capture_preview_retake_button_text':
+            androidAutoCapturePreviewRetakeButtonText,
+        'auto_capture_preview_next_button_text':
+            androidAutoCapturePreviewNextButtonText,
         'auto_capture_preview_retake_button_text_color':
             androidAutoCapturePreviewRetakeButtonTextColor,
         'auto_capture_preview_retake_button_text_size':

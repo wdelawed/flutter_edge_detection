@@ -136,19 +136,20 @@ class _MyHomePageState extends State<MyHomePage> {
         androidCropTitle: 'Crop',
         androidCropBlackWhiteTitle: 'Black White',
         androidCropReset: 'Reset',
-        androidAutoCapture: true, 
-        androidAutoCaptureMinGoodFrames:5,
+        androidAutoCapture: true,
+        androidAutoCaptureMinGoodFrames: 5,
         androidAutoCapturePreviewButtonBackgroundColor: "#FF00FF00",
         androidAutoCapturePreviewButtonTextColor: "#FFFFFFFF",
         androidAutoCapturePreviewButtonHorizontalPadding: 20,
         androidAutoCapturePreviewButtonBorderRadius: 12,
         androidAutoCapturePreviewButtonTextSize: 14,
         androidAutoCapturePreviewButtonVerticalPadding: 8,
+        androidAutoCapturePreviewRetakeButtonText: 'Retry',
+        androidAutoCapturePreviewNextButtonText: 'Next',
         androidAutoCapturePreviewRetakeButtonBackgroundColor: '#66FF3B30',
         androidAutoCapturePreviewRetakeButtonTextColor: '#FFFFFFFF',
         androidAutoCapturePreviewNextButtonBackgroundColor: '#6600C853',
         androidAutoCapturePreviewNextButtonTextColor: '#FFFFFFFF',
-        
       );
 
       if (mounted) {

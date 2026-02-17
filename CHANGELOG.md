@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+- Add Android auto-capture preview button text overrides:
+  - `androidAutoCapturePreviewRetakeButtonText`
+  - `androidAutoCapturePreviewNextButtonText`
+
 ## [1.0.2] - 2024-06-19
 
 - Update dependencies to latest versions:
