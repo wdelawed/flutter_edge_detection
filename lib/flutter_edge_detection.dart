@@ -3,11 +3,25 @@ library flutter_edge_detection;
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// A Flutter plugin for real-time edge detection and document scanning with advanced image processing capabilities.
 class FlutterEdgeDetection {
   static const MethodChannel _channel = MethodChannel('flutter_edge_detection');
+
+  @visibleForTesting
+  static TargetPlatform? debugTargetPlatformOverride;
+
+  static void _throwIfIosUnsupported() {
+    final platform = debugTargetPlatformOverride ?? defaultTargetPlatform;
+    if (platform == TargetPlatform.iOS) {
+      throw const EdgeDetectionException(
+        code: 'unimplemented',
+        message: 'flutter_edge_detection is only implemented for Android.',
+      );
+    }
+  }
 
   /// Call this method to scan the object edge in live camera.
   ///
@@ -77,6 +91,8 @@ class FlutterEdgeDetection {
     String? androidAutoCapturePreviewNextButtonBackgroundColor,
     double? androidAutoCapturePreviewNextButtonBorderRadius,
   }) async {
+    _throwIfIosUnsupported();
+
     try {
       final bool? result = await _channel.invokeMethod('edge_detect', {
         'save_to': saveTo,
@@ -155,6 +171,8 @@ class FlutterEdgeDetection {
     String? androidCropBlackWhiteTitle,
     String? androidCropReset,
   }) async {
+    _throwIfIosUnsupported();
+
     try {
       final bool? result = await _channel.invokeMethod('edge_detect_gallery', {
         'save_to': saveTo,

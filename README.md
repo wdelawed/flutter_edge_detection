@@ -1,10 +1,10 @@
 # Flutter Edge Detection
 
-A Flutter plugin to detect edges of objects, scan paper, detect corners, and detect rectangles. It allows cropping of the detected object image and returns the path of the cropped image.
+A Flutter plugin to detect edges of objects, scan paper, detect corners, and detect rectangles on Android. It allows cropping of the detected object image and returns the path of the cropped image.
 
 ## Features
 
-- 📱 **Cross-platform**: Works on both Android and iOS
+- 🤖 **Android Only**: Native implementation is available on Android
 - 📷 **Camera Integration**: Live camera scanning with edge detection
 - 🖼️ **Gallery Support**: Process images from device gallery
 - ✂️ **Smart Cropping**: Automatic edge detection and cropping
@@ -17,7 +17,6 @@ A Flutter plugin to detect edges of objects, scan paper, detect corners, and det
 - Flutter: >=3.27.0
 - Dart: >=3.0.0
 - Android: API level 21+ (Android 5.0+)
-- iOS: 13.0+
 
 ## Installation
 
@@ -98,6 +97,8 @@ Future<void> scanFromGallery() async {
   }
 }
 ```
+
+Calls made on iOS throw `EdgeDetectionException` with code `unimplemented`.
 
 ### Error Handling
 
@@ -190,17 +191,6 @@ Add the following permissions to your `android/app/src/main/AndroidManifest.xml`
 <uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-```
-
-### iOS
-
-Add the following keys to your `ios/Runner/Info.plist`:
-
-```xml
-<key>NSCameraUsageDescription</key>
-<string>This app needs camera access to scan documents</string>
-<key>NSPhotoLibraryUsageDescription</key>
-<string>This app needs photo library access to select images for scanning</string>
 ```
 
 ## Example

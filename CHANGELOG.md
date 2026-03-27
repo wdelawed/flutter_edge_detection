@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Remove the native iOS plugin implementation and make iOS calls throw `EdgeDetectionException(code: 'unimplemented', ...)`.
 - Localize Android plugin UI strings for English and Arabic.
 - Use localized native defaults for Android titles/instructions when text parameters are omitted from Flutter.
 - Keep Android preview text overrides available from Flutter:
