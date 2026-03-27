@@ -5,7 +5,6 @@
 //  Created by Henry Leung on 3/9/2021.
 //
 
-import WeScan
 import Flutter
 import Foundation
 

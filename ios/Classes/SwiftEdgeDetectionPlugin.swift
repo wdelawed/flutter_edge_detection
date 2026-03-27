@@ -1,6 +1,5 @@
 import Flutter
 import UIKit
-import WeScan
 
 public class SwiftEdgeDetectionPlugin: NSObject, FlutterPlugin, UIApplicationDelegate {
     
