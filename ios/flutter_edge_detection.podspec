@@ -12,11 +12,10 @@ A Flutter plugin for real-time edge detection and document scanning with advance
   s.homepage         = 'https://github.com/jayfinava/flutter_edge_detection'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Jay Finava' => 'jayfinava4505@gmail.com' }
-  s.resources        = 'Assets/**/*'
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'Classes/**/*', 'WeScan-3.0.0/WeScan/**/*.swift'
+  s.resources    = 'Assets/**/*', 'WeScan-3.0.0/WeScan/**/*.{storyboard,xib,xcassets,json,png}'
   s.dependency 'Flutter'
-  s.dependency 'WeScan'
   s.platform = :ios, '13.0'
 
   # Flutter.framework does not contain a i386 slice.
