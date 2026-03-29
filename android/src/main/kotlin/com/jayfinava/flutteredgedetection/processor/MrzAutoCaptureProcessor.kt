@@ -55,7 +55,7 @@ class MrzAutoCaptureProcessor(
         synchronized(tessLock) {
             isReleased = true
             if (tessReady) {
-                tess.end()
+                tess.recycle()
             }
             tessReady = false
         }
@@ -252,7 +252,7 @@ class MrzAutoCaptureProcessor(
             Log.e(
                 TAG,
                 "Tesseract init failed for language=$OCR_LANGUAGE mode=OEM_TESSERACT_ONLY. " +
-                    "Ensure $OCR_LANGUAGE.traineddata is compatible with tess-two 9.1.0."
+                    "Ensure $OCR_LANGUAGE.traineddata is compatible with Tesseract4Android v4 traineddata."
             )
             return
         }
